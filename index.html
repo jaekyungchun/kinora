@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KINORA — Personal training, reimagined.</title>
+<meta name="description" content="Live personal training with verified coaches — anywhere, anytime. Book your free intro session on Kinora.">
+
+<!-- Favicon / app icons -->
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#070a09">
+<!-- PWA (installable web app) -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kinora">
+
+<!-- Social share preview (Open Graph + Twitter) -->
+<!-- TODO: replace https://kinora.app with your real domain once live -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kinora">
+<meta property="og:title" content="Kinora — Personal training, reimagined.">
+<meta property="og:description" content="Live personal training with verified coaches — anywhere, anytime. Book your free intro session.">
+<meta property="og:url" content="https://kinora.app">
+<meta property="og:image" content="https://kinora.app/assets/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kinora — Personal training, reimagined.">
+<meta name="twitter:description" content="Live personal training with verified coaches — anywhere, anytime.">
+<meta name="twitter:image" content="https://kinora.app/assets/og-image.jpg">
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+<!-- Motion (spring-physics animation library) -->
+<script src="https://cdn.jsdelivr.net/npm/motion@12.40.0/dist/motion.js"></script>
+<style>
+  :root{
+    --bg:#0A0A0A; --bg-2:#0c1310; --panel:#101a15; --panel-2:#0d1410;
+    --mint:#6FFFC2; --green:#0E7A5F; --green-soft:#1faa7e;
+    --white:#F4F8F6; --gray:#93a39b; --line:rgba(111,255,194,.13); --line-2:rgba(255,255,255,.06);
+    --display:'Satoshi',system-ui,sans-serif; --body:'Satoshi',system-ui,sans-serif;
+  }
+  html[lang="ar"]{ --display:"Segoe UI",Tahoma,system-ui,sans-serif; --body:"Segoe UI",Tahoma,system-ui,sans-serif; }
+  html[lang="zh"]{ --display:'Satoshi',"PingFang SC","Microsoft YaHei",system-ui,sans-serif; --body:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; }
+  html[lang="ko"]{ --display:'Satoshi',"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif; --body:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif; }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--white);font-family:var(--body);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;cursor:default}
+  ::selection{background:var(--mint);color:#04130d}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  .mint{color:var(--mint)}
+
+  /* scroll progress + cursor glow */
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--green),var(--mint));z-index:200;box-shadow:0 0 12px var(--mint)}
+  #spot{position:fixed;width:520px;height:520px;border-radius:50%;pointer-events:none;z-index:1;left:0;top:0;transform:translate(-50%,-50%);
+    background:radial-gradient(circle,rgba(111,255,194,.07),transparent 62%);transition:opacity .4s;mix-blend-mode:screen}
+
+  /* atmosphere */
+  .atmos{position:fixed;inset:0;z-index:-1;overflow:hidden}
+  .glow{position:absolute;border-radius:50%;filter:blur(130px)}
+  .glow.a{width:560px;height:560px;background:radial-gradient(circle,#0E7A5F,transparent 70%);opacity:.4;top:-180px;left:-120px}
+  .glow.b{width:520px;height:520px;background:radial-gradient(circle,#6FFFC2,transparent 70%);opacity:.08;top:46%;right:-180px}
+  .grid-tex{position:absolute;inset:0;background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);background-size:66px 66px;mask-image:radial-gradient(circle at 50% 0,#000,transparent 72%)}
+
+  /* nav */
+  header{position:sticky;top:0;z-index:50;transition:background .3s,box-shadow .3s,border-color .3s;border-bottom:1px solid transparent}
+  header.scrolled{backdrop-filter:blur(16px);background:rgba(10,10,10,.7);border-bottom-color:var(--line-2);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+  nav{display:flex;align-items:center;justify-content:space-between;height:74px}
+  .brand{display:flex;align-items:center;gap:12px;font-family:var(--display);font-weight:700;letter-spacing:.32em;font-size:18px}
+  .brand .mark{width:34px;height:34px;flex:0 0 auto}
+  .hero-mark path{stroke-dasharray:130;stroke-dashoffset:130;animation:draw 1.4s cubic-bezier(.6,.1,.2,1) forwards}
+  .hero-mark path:nth-child(3){animation-delay:.25s}
+  .hero-mark path:nth-child(4){animation-delay:.45s}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .navlinks{display:flex;gap:32px;align-items:center;font-size:14.5px;color:var(--gray);font-weight:500}
+  .navlinks a{position:relative;transition:color .2s}
+  .navlinks a::after{content:"";position:absolute;left:0;bottom:-6px;width:0;height:2px;background:var(--mint);transition:width .25s;border-radius:2px}
+  .navlinks a:hover{color:var(--white)} .navlinks a:hover::after{width:100%}
+  .nav-right{display:flex;align-items:center;gap:14px}
+  .lang{position:relative}
+  .lang-btn{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);color:var(--white);padding:8px 13px;border-radius:10px;font-family:var(--body);font-size:13.5px;font-weight:600;cursor:pointer;transition:.2s}
+  .lang-btn:hover{border-color:var(--mint)} .lang-btn .chev{font-size:10px;color:var(--gray)}
+  .lang-menu{position:absolute;top:48px;inset-inline-end:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px;min-width:174px;box-shadow:0 24px 60px rgba(0,0,0,.6);opacity:0;visibility:hidden;transform:translateY(-6px);transition:.18s;z-index:60}
+  .lang-menu.open{opacity:1;visibility:visible;transform:translateY(0)}
+  .lang-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;transition:.15s}
+  .lang-item:hover{background:rgba(111,255,194,.08)} .lang-item.active{background:rgba(111,255,194,.12);color:var(--mint)}
+  .lang-item .flag{font-size:17px}
+
+  .btn{font-family:var(--display);font-weight:700;font-size:14.5px;border:none;cursor:pointer;border-radius:11px;transition:transform .15s,box-shadow .25s,background .2s,color .2s;display:inline-flex;align-items:center;justify-content:center;gap:9px;position:relative;overflow:hidden}
+  .btn-primary{background:var(--mint);color:#04130d;padding:13px 24px}
+  .btn-primary:hover{box-shadow:0 14px 34px rgba(111,255,194,.3)}
+  .btn-primary::before{content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);transition:left .55s}
+  .btn-primary:hover::before{left:130%}
+  .btn-ghost{background:transparent;color:var(--white);border:1px solid var(--line);padding:13px 24px}
+  .btn-ghost:hover{border-color:var(--mint);color:var(--mint)}
+  .btn-sm{padding:9px 18px;font-size:13.5px}
+
+  /* hero */
+  .hero{position:relative;padding:96px 0 70px;min-height:88vh;display:flex;align-items:center}
+  #wave{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+  .hero .wrap{position:relative;z-index:2;width:100%}
+  .hero-inner{max-width:620px}
+  .pill{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--mint);border:1px solid var(--line);padding:7px 15px;border-radius:100px;margin-bottom:28px;background:rgba(10,16,13,.5);backdrop-filter:blur(6px)}
+  .pill .dot{width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 12px var(--mint);animation:pulse 2s infinite}
+  @keyframes pulse{50%{opacity:.4}}
+  h1.hero-h{font-family:var(--display);font-weight:900;font-size:clamp(42px,6vw,76px);line-height:1;letter-spacing:-.025em}
+  .shimmer{background:linear-gradient(90deg,#0E7A5F,#6FFFC2,#eafff5,#6FFFC2,#0E7A5F);background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 5s linear infinite}
+  @keyframes shimmer{to{background-position:-220% center}}
+  .hero-sub{color:var(--gray);font-size:19px;max-width:430px;margin:24px 0 34px}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .hero-stats{display:flex;gap:40px;margin-top:50px}
+  .hero-stats .n{font-family:var(--display);font-weight:900;font-size:30px}
+  .hero-stats .l{color:var(--gray);font-size:13px;margin-top:2px}
+  .anim-up{opacity:0;transform:translateY(26px);animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .d1{animation-delay:.1s}.d2{animation-delay:.25s}.d3{animation-delay:.4s}.d4{animation-delay:.55s}.d5{animation-delay:.7s}
+
+  /* wave divider */
+  .wave-divider{line-height:0;overflow:hidden}
+  .wave-divider svg{width:100%;height:90px;display:block}
+  .wd-base{fill:none;stroke:rgba(31,170,126,.22);stroke-width:1.4}
+  .wd-flow{fill:none;stroke:var(--mint);stroke-width:2;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--mint));stroke-dasharray:140 1600;animation:flow 7s linear infinite}
+  @keyframes flow{to{stroke-dashoffset:-1740}}
+
+  /* pillars */
+  .pillars{padding:46px 0;border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+  .pillars .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+  .pillar{display:flex;gap:14px;align-items:flex-start}
+  .pillar .pic{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:0 0 auto;background:rgba(111,255,194,.05)}
+  .pillar .pt{font-family:var(--display);font-weight:700;font-size:16px}
+  .pillar .pd{color:var(--gray);font-size:13.5px}
+
+  section.block{padding:100px 0;position:relative}
+  .eyebrow{color:var(--mint);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:12.5px;margin-bottom:14px}
+  h2.sec{font-family:var(--display);font-weight:900;font-size:clamp(30px,3.8vw,46px);letter-spacing:-.025em;line-height:1.06}
+  .sec-sub{color:var(--gray);font-size:17px;margin-top:14px;max-width:540px}
+  .center{text-align:center}.center .sec-sub{margin-inline:auto}
+
+  /* journey */
+  .journey{position:relative;margin-top:60px}
+  .journey-svg{width:100%;height:200px;display:block}
+  .jpath-base{fill:none;stroke:rgba(31,170,126,.25);stroke-width:2}
+  .jpath{fill:none;stroke:url(#jgrad);stroke-width:3.4;stroke-linecap:round;filter:drop-shadow(0 0 8px rgba(111,255,194,.6))}
+  .jsteps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:30px}
+  .jstep{text-align:center;opacity:0;transform:translateY(18px);transition:.6s}
+  .jstep.in{opacity:1;transform:none}
+  .jnode{width:50px;height:50px;border-radius:14px;margin:0 auto 14px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;background:rgba(10,16,13,.6);position:relative}
+  .jstep.in .jnode{box-shadow:0 0 0 0 rgba(111,255,194,.4);animation:np 2.4s ease-out infinite}
+  @keyframes np{0%{box-shadow:0 0 0 0 rgba(111,255,194,.4)}70%{box-shadow:0 0 0 16px rgba(111,255,194,0)}}
+  .jstep .jt{font-family:var(--display);font-weight:700;font-size:16px}
+  .jstep .ji{font-family:var(--display);font-weight:900;font-size:13px;color:var(--mint);margin-bottom:8px;letter-spacing:.1em}
+
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:54px}
+  .step{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:18px;padding:30px;transition:.3s}
+  .step:hover{border-color:var(--line);transform:translateY(-5px)}
+  .step .num{font-family:var(--display);font-weight:900;font-size:15px;color:#04130d;background:var(--mint);width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+  .step h3{font-family:var(--display);font-size:20px;font-weight:700;margin-bottom:9px}
+  .step p{color:var(--gray);font-size:15px}
+
+  /* coaches */
+  .coach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:54px}
+  .coach{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:18px;overflow:hidden;transition:border-color .3s,box-shadow .3s;transform-style:preserve-3d;will-change:transform}
+  .coach:hover{border-color:var(--mint);box-shadow:0 26px 64px rgba(0,0,0,.55)}
+  .coach-top{padding:22px;display:flex;gap:15px;align-items:center}
+  .coach-av{width:62px;height:62px;border-radius:16px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:22px;color:#04130d}
+  .coach-name{font-family:var(--display);font-weight:700;font-size:18px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--mint);background:rgba(111,255,194,.1);padding:3px 8px;border-radius:100px}
+  .coach-role{color:var(--gray);font-size:14px;margin-top:2px}
+  .coach-meta{padding:0 22px 12px;color:var(--gray);font-size:13.5px}
+  .stars{color:var(--mint);font-weight:700}
+  .speaks{display:flex;gap:5px;margin:0 0 4px;padding:0 22px}
+  .lang-chip{font-size:11px;color:var(--gray);border:1px solid var(--line-2);padding:2px 9px;border-radius:100px}
+  .coach-foot{padding:16px 22px;margin-top:8px;border-top:1px solid var(--line-2);display:flex;align-items:center;justify-content:space-between}
+  .price .p{font-family:var(--display);font-weight:900;font-size:19px} .price .u{color:var(--gray);font-size:12.5px}
+
+  /* anywhere strip */
+  .anywhere{padding:80px 0;text-align:center}
+  .uc-row{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:42px}
+  .uc{display:flex;flex-direction:column;align-items:center;gap:12px;min-width:130px;padding:24px 18px;border:1px solid var(--line-2);border-radius:16px;background:linear-gradient(165deg,var(--panel),var(--panel-2));transition:.3s}
+  .uc:hover{border-color:var(--mint);transform:translateY(-5px)}
+  .uc .uci{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+  .uc .uct{font-weight:600;font-size:14px}
+
+  /* pricing */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:54px;align-items:stretch}
+  .tier{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:20px;padding:32px;display:flex;flex-direction:column;position:relative;transition:.3s}
+  .tier:hover{transform:translateY(-5px)}
+  .tier.feat{border-color:var(--mint);box-shadow:0 0 0 1px var(--mint),0 30px 70px rgba(111,255,194,.12);animation:floaty 5s ease-in-out infinite}
+  @keyframes floaty{50%{transform:translateY(-9px)}}
+  .tier .tag{position:absolute;top:-13px;inset-inline-start:50%;transform:translateX(-50%);background:var(--mint);color:#04130d;font-size:12px;font-weight:700;padding:5px 14px;border-radius:100px;white-space:nowrap}
+  html[dir="rtl"] .tier .tag{transform:translateX(50%)}
+  .tier h3{font-family:var(--display);font-size:19px;font-weight:700}
+  .tier .amt{font-family:var(--display);font-weight:900;font-size:38px;margin:14px 0 4px;letter-spacing:-.02em}
+  .tier .per{color:var(--gray);font-size:14px} .tier .desc{color:var(--gray);font-size:14.5px;margin:14px 0 22px}
+  .tier ul{list-style:none;display:flex;flex-direction:column;gap:13px;margin-bottom:28px;flex:1}
+  .tier li{display:flex;gap:10px;align-items:flex-start;font-size:14.5px}
+  .tier li svg{flex:0 0 auto;margin-top:3px} .tier .btn{width:100%}
+
+  /* market band */
+  .market{background:linear-gradient(120deg,#0d1812,#0a120e);border:1px solid var(--line);border-radius:26px;padding:54px;display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;position:relative;overflow:hidden}
+  .market::after{content:"";position:absolute;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(111,255,194,.16),transparent 70%);inset-inline-end:-80px;bottom:-120px}
+  .market h2{font-family:var(--display);font-weight:900;font-size:clamp(26px,3vw,40px);letter-spacing:-.02em;line-height:1.08;position:relative;z-index:2}
+  .mstats{display:flex;gap:36px;position:relative;z-index:2}
+  .mstat .mn{font-family:var(--display);font-weight:900;font-size:clamp(38px,5vw,58px);color:var(--mint);line-height:1}
+  .mstat .ml{color:var(--gray);font-size:13.5px;margin-top:8px;max-width:160px}
+
+  /* trainer */
+  .trainer{background:linear-gradient(120deg,#0e1a15,#0a120e);border:1px solid var(--line);border-radius:28px;padding:60px;display:grid;grid-template-columns:1.2fr .8fr;gap:30px;align-items:center;position:relative;overflow:hidden}
+  .trainer::after{content:"";position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(111,255,194,.18),transparent 70%);inset-inline-end:-60px;top:-80px}
+  .trainer h2{font-family:var(--display);font-weight:900;font-size:clamp(26px,3vw,40px);letter-spacing:-.02em}
+  .trainer p{color:var(--gray);font-size:17px;margin-top:14px;max-width:420px}
+  .trainer .earn{position:relative;z-index:2;text-align:center;background:rgba(10,16,13,.7);border:1px solid var(--line);border-radius:20px;padding:32px}
+  .trainer .earn .big{font-family:var(--display);font-weight:900;font-size:60px;color:var(--mint);line-height:1}
+  .trainer .earn .lbl{color:var(--gray);font-size:14px;margin-top:8px}
+
+  footer{border-top:1px solid var(--line-2);padding:56px 0 34px;margin-top:30px}
+  .foot-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:30px}
+  .foot-brand p{color:var(--gray);font-size:14.5px;margin-top:16px;max-width:260px}
+  .foot-col h4{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:16px}
+  .foot-col a{display:block;color:var(--white);font-size:14.5px;margin-bottom:11px;opacity:.85;transition:.2s}
+  .foot-col a:hover{opacity:1;color:var(--mint)}
+  .foot-bottom{border-top:1px solid var(--line-2);margin-top:42px;padding-top:24px;display:flex;justify-content:space-between;color:var(--gray);font-size:13.5px;flex-wrap:wrap;gap:10px}
+
+  .overlay{position:fixed;inset:0;background:rgba(4,8,6,.78);backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:24px}
+  .overlay.open{display:flex;animation:fade .25s} @keyframes fade{from{opacity:0}}
+  .modal{background:linear-gradient(165deg,#11201a,#0c1611);border:1px solid var(--line);border-radius:22px;padding:32px;max-width:440px;width:100%;box-shadow:0 40px 100px rgba(0,0,0,.7);animation:pop .3s cubic-bezier(.2,.8,.2,1)}
+  @keyframes pop{from{opacity:0;transform:scale(.92) translateY(10px)}}
+  .modal h3{font-family:var(--display);font-size:22px;font-weight:900} .modal .mwith{color:var(--mint);font-size:15px;margin:4px 0 22px;font-weight:600}
+  .field{margin-bottom:16px} .field label{display:block;font-size:13px;color:var(--gray);margin-bottom:7px;font-weight:600}
+  .field input{width:100%;background:var(--bg);border:1px solid var(--line-2);border-radius:11px;padding:12px 14px;color:var(--white);font-family:var(--body);font-size:15px}
+  .field input:focus{outline:none;border-color:var(--mint)}
+  .modal .note{color:var(--gray);font-size:12.5px;margin-top:14px;text-align:center}
+  .modal .close{float:inline-end;cursor:pointer;color:var(--gray);font-size:24px;line-height:1;margin-top:-6px}
+  .success{text-align:center;padding:10px 0}
+  .success .ic{width:64px;height:64px;border-radius:50%;background:rgba(111,255,194,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+  .success p{color:var(--gray);margin-top:8px}
+
+  .reveal{opacity:0;transform:translateY(28px)}
+  .reveal.left{transform:translateX(-40px)} .reveal.right{transform:translateX(40px)} .reveal.scale{transform:scale(.94)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:920px){
+    .hero{min-height:auto;padding-top:60px}
+    .pillars .wrap{grid-template-columns:repeat(2,1fr);gap:26px}
+    .steps,.coach-grid,.tiers,.jsteps{grid-template-columns:1fr}
+    .market,.trainer{grid-template-columns:1fr;padding:38px}
+    .foot-grid{grid-template-columns:1fr 1fr}
+    .navlinks{display:none} #spot{display:none}
+    .journey-svg{height:120px}
+  }
+  @media(max-width:560px){.foot-grid{grid-template-columns:1fr}.hero-stats{gap:24px}}
+  @media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}}
+
+  /* ===== media additions ===== */
+  /* hero photo */
+  .hero-photo{position:absolute;right:0;top:0;height:100%;width:60%;object-fit:cover;object-position:60% center;z-index:1;opacity:.92;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 42%,#000);mask-image:linear-gradient(90deg,transparent,#000 42%,#000)}
+  html[dir="rtl"] .hero-photo{right:auto;left:0;transform:scaleX(-1)}
+  @media(max-width:860px){.hero-photo{width:100%;opacity:.3;-webkit-mask-image:linear-gradient(180deg,transparent,#000 65%);mask-image:linear-gradient(180deg,transparent,#000 65%)}}
+
+  /* feature band */
+  .feature{padding:34px 0 6px}
+  .feature .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:50px;align-items:center}
+  .feature-media{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10}
+  .feature-media img{width:100%;height:100%;object-fit:cover;display:block}
+  .feature-media::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 60%,rgba(111,255,194,.07));pointer-events:none}
+  .feature h2{font-family:var(--display);font-weight:900;font-size:clamp(28px,3.4vw,40px);letter-spacing:-.025em;line-height:1.08;margin-bottom:20px}
+  .feature .ck{display:flex;gap:11px;align-items:flex-start;margin:13px 0;font-size:15.5px;color:var(--white)}
+  .feature .ck svg{flex:0 0 auto;margin-top:3px}
+  .feature .ck span span{color:var(--gray)}
+  @media(max-width:860px){.feature .wrap{grid-template-columns:1fr;gap:26px}}
+
+  /* use-case photo cards */
+  .uc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
+  .uc-card{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--line-2);aspect-ratio:3/4;transition:border-color .35s,box-shadow .35s}
+  .uc-card img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
+  .uc-card:hover{border-color:var(--mint);box-shadow:0 26px 60px rgba(0,0,0,.5)}
+  .uc-card:hover img{transform:scale(1.06)}
+  .uc-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 38%,rgba(4,9,7,.88))}
+  .uc-card .cap{position:absolute;left:0;bottom:0;padding:22px;z-index:2}
+  .uc-card .cap .t{font-family:var(--display);font-weight:800;font-size:20px}
+  .uc-card .cap .d{color:var(--gray);font-size:13.5px;margin-top:3px}
+  @media(max-width:760px){.uc-grid{grid-template-columns:1fr 1fr;gap:14px}.uc-card:last-child{grid-column:span 2;aspect-ratio:16/9}}
+
+  /* app demo */
+  .app{display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center;margin-top:24px}
+  .phone{justify-self:center;width:268px;max-width:78vw;border-radius:40px;padding:11px;background:linear-gradient(165deg,#1a2620,#0b110e);border:1px solid var(--line);box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 0 1px rgba(111,255,194,.08);position:relative}
+  .phone video{width:100%;display:block;border-radius:30px}
+  .phone .notch{position:absolute;top:19px;left:50%;transform:translateX(-50%);width:42%;height:20px;background:#05080a;border-radius:0 0 13px 13px;z-index:3}
+  .app-copy h2{font-family:var(--display);font-weight:900;font-size:clamp(28px,3.4vw,40px);letter-spacing:-.025em;line-height:1.08;margin-bottom:16px}
+  .app-feats{display:flex;flex-direction:column;gap:16px;margin-top:26px}
+  .app-feat{display:flex;gap:13px;align-items:flex-start}
+  .app-feat .ic{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:rgba(111,255,194,.05);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .app-feat .tt{font-family:var(--display);font-weight:700;font-size:15.5px}
+  .app-feat .dd{color:var(--gray);font-size:14px;margin-top:1px}
+  @media(max-width:860px){.app{grid-template-columns:1fr;gap:36px}}
+
+  /* testimonials */
+  .tcards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:54px}
+  .tcard{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:18px;padding:28px;display:flex;flex-direction:column;transition:.3s}
+  .tcard:hover{border-color:var(--mint);transform:translateY(-5px)}
+  .tcard .trate{color:var(--mint);font-size:15px;margin-bottom:14px;letter-spacing:3px}
+  .tcard .quote{font-size:15.5px;line-height:1.62;flex:1}
+  .tcard .who{display:flex;gap:13px;align-items:center;margin-top:22px;padding-top:18px;border-top:1px solid var(--line-2)}
+  .tcard .av{width:46px;height:46px;border-radius:50%;object-fit:cover;flex:0 0 auto;border:1px solid var(--line)}
+  .tcard .av.ph{display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;color:#04130d;font-size:17px}
+  .tcard .nm{font-family:var(--display);font-weight:700;font-size:15px}
+  .tcard .ro{color:var(--gray);font-size:13px}
+  @media(max-width:860px){.tcards{grid-template-columns:1fr}}
+
+  /* ambient video background */
+  .has-vid{position:relative;overflow:hidden}
+  .bg-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:.26;pointer-events:none}
+  .has-vid > .wrap{position:relative;z-index:1}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="spot"></div>
+<div class="atmos"><div class="glow a"></div><div class="glow b"></div><div class="grid-tex"></div></div>
+
+<svg width="0" height="0"><defs>
+  <linearGradient id="kg" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="#6FFFC2"/><stop offset="1" stop-color="#0E7A5F"/></linearGradient>
+  <linearGradient id="kgf" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="rgba(111,255,194,0.10)"/><stop offset="1" stop-color="rgba(14,122,95,0.04)"/></linearGradient>
+  <linearGradient id="jgrad" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#0E7A5F"/><stop offset=".5" stop-color="#6FFFC2"/><stop offset="1" stop-color="#0E7A5F"/></linearGradient>
+</defs></svg>
+
+<!-- NAV -->
+<header id="header">
+  <div class="wrap"><nav>
+    <a class="brand" href="#">
+      <svg class="mark hero-mark" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1.5" y="1.5" width="45" height="45" rx="13" stroke="url(#kg)" stroke-width="2"/>
+        <rect x="1.5" y="1.5" width="45" height="45" rx="13" fill="url(#kgf)"/>
+        <path d="M17 11 V37" stroke="url(#kg)" stroke-width="4.4" stroke-linecap="round"/>
+        <path d="M33 13 C20 17 20 30 33 35" stroke="#6FFFC2" stroke-width="4.4" stroke-linecap="round" fill="none"/>
+        <path d="M17 24 L26 24" stroke="url(#kg)" stroke-width="4.4" stroke-linecap="round"/>
+      </svg>KINORA
+    </a>
+    <div class="navlinks">
+      <a href="#how" data-i18n="nav_clients">For Clients</a>
+      <a href="#trainer" data-i18n="nav_trainers">For Trainers</a>
+      <a href="#how" data-i18n="nav_how">How It Works</a>
+      <a href="#coaches" data-i18n="nav_about">Coaches</a>
+    </div>
+    <div class="nav-right">
+      <div class="lang">
+        <button class="lang-btn" id="langBtn"><span id="langFlag">🇬🇧</span><span id="langLabel">EN</span><span class="chev">▼</span></button>
+        <div class="lang-menu" id="langMenu">
+          <div class="lang-item" data-lang="en"><span class="flag">🇬🇧</span> English</div>
+          <div class="lang-item" data-lang="ar"><span class="flag">🇦🇪</span> العربية</div>
+          <div class="lang-item" data-lang="zh"><span class="flag">🇨🇳</span> 中文</div>
+          <div class="lang-item" data-lang="ru"><span class="flag">🇷🇺</span> Русский</div>
+          <div class="lang-item" data-lang="ko"><span class="flag">🇰🇷</span> 한국어</div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm mag" data-i18n="cta_start" onclick="location.href='app.html'">Get Started</button>
+    </div>
+  </nav></div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <canvas id="wave"></canvas>
+  <img class="hero-photo" src="assets/hero-athlete.jpg" alt="Athlete training in motion" fetchpriority="high">
+  <div class="wrap"><div class="hero-inner">
+    <div class="pill anim-up d1"><span class="dot"></span><span data-i18n="tagline">The future of personal training</span></div>
+    <h1 class="hero-h"><span class="anim-up d2" style="display:inline-block" data-i18n="hero_1">Personal training,</span><br><span class="shimmer anim-up d3" style="display:inline-block" data-i18n="hero_2">reimagined.</span></h1>
+    <p class="hero-sub anim-up d4" data-i18n="hero_sub">Expert coaches. Wherever you are. Whenever you want.</p>
+    <div class="hero-cta anim-up d5">
+      <button class="btn btn-primary mag" data-i18n="cta_book" onclick="location.href='app.html'">Book a Session</button>
+      <button class="btn btn-ghost" data-i18n="cta_learn" onclick="go('how')">Learn More</button>
+    </div>
+    <div class="hero-stats anim-up d5">
+      <div><div class="n mint" data-count="2400" data-comma data-suffix="+">0</div><div class="l" data-i18n="stat_coaches">Verified coaches</div></div>
+      <div><div class="n mint" data-count="4.9" data-decimals="1" data-suffix="★">0</div><div class="l" data-i18n="stat_rating">Average rating</div></div>
+      <div><div class="n mint" data-count="4">0</div><div class="l" data-i18n="stat_cities">Cities</div></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- PILLARS -->
+<div class="pillars">
+  <div class="wrap">
+    <div class="pillar reveal"><div class="pic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6z" stroke="#6FFFC2" stroke-width="1.7" stroke-linejoin="round"/></svg></div><div><div class="pt" data-i18n="pil_move_t">Movement</div><div class="pd" data-i18n="pil_move_d">Forward always</div></div></div>
+    <div class="pillar reveal"><div class="pic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="9" r="3" stroke="#6FFFC2" stroke-width="1.7"/><circle cx="17" cy="11" r="2.4" stroke="#6FFFC2" stroke-width="1.7"/><path d="M3 19c0-3 2.5-4.5 5-4.5s5 1.5 5 4.5M14 19c0-2 1.5-3.2 3-3.2s3 1.2 3 3.2" stroke="#6FFFC2" stroke-width="1.7" stroke-linecap="round"/></svg></div><div><div class="pt" data-i18n="pil_conn_t">Connection</div><div class="pd" data-i18n="pil_conn_d">Built on trust</div></div></div>
+    <div class="pillar reveal"><div class="pic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 17l5-5 3 3 8-9" stroke="#6FFFC2" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 6h4v4" stroke="#6FFFC2" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><div class="pt" data-i18n="pil_grow_t">Growth</div><div class="pd" data-i18n="pil_grow_d">Everyday better</div></div></div>
+    <div class="pillar reveal"><div class="pic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#6FFFC2" stroke-width="1.7"/><circle cx="12" cy="12" r="4" stroke="#6FFFC2" stroke-width="1.7"/></svg></div><div><div class="pt" data-i18n="pil_trans_t">Transformation</div><div class="pd" data-i18n="pil_trans_d">Stronger you</div></div></div>
+  </div>
+</div>
+
+<div class="wave-divider"><svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path class="wd-base" d="M0,55 C240,15 480,15 720,55 C960,95 1200,95 1440,55"/><path class="wd-flow" d="M0,55 C240,15 480,15 720,55 C960,95 1200,95 1440,55"/></svg></div>
+
+<!-- FEATURE: coach comes to you -->
+<section class="block feature" id="feature" style="padding-bottom:0">
+  <div class="wrap">
+    <div class="feature-media reveal left">
+      <img src="assets/coach-arrives.jpg" alt="A verified Kinora coach on a live video session" loading="lazy">
+    </div>
+    <div class="reveal right">
+      <div class="eyebrow" data-i18n="feat_eyebrow">No gym. No commute.</div>
+      <h2 data-i18n="feat_title">A verified coach, on your screen.</h2>
+      <div class="ck"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="feat_1"><b>Train from anywhere</b> — live video, on your phone or laptop.</span></div>
+      <div class="ck"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="feat_2"><b>Every coach verified</b> — ID and certifications checked.</span></div>
+      <div class="ck"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="feat_3"><b>Book in the app</b> — chat, reschedule, and pay in one place.</span></div>
+      <div style="margin-top:26px"><button class="btn btn-primary mag" data-i18n="cta_book" onclick="location.href='app.html'">Book a Session</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="block" id="how" style="padding-top:30px">
+  <div class="wrap">
+    <div class="center reveal"><div class="eyebrow" data-i18n="how_eyebrow">How it works</div><h2 class="sec" data-i18n="how_title">How Kinora works</h2><p class="sec-sub" data-i18n="how_sub">Three steps to your first session.</p></div>
+    <div class="steps">
+      <div class="step reveal left"><div class="num">1</div><h3 data-i18n="s1_t">Find your coach</h3><p data-i18n="s1_d">Browse verified trainers. Match by goal, schedule, and language.</p></div>
+      <div class="step reveal"><div class="num">2</div><h3 data-i18n="s2_t">Book in seconds</h3><p data-i18n="s2_d">Pick a time. Your coach joins you on a live video call — wherever you are.</p></div>
+      <div class="step reveal right"><div class="num">3</div><h3 data-i18n="s3_t">Train &amp; track</h3><p data-i18n="s3_d">Follow your personalized plan and track progress between every session.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- JOURNEY -->
+<section class="block" id="journey" style="padding-top:10px">
+  <div class="wrap">
+    <div class="center reveal"><div class="eyebrow" data-i18n="journey_eyebrow">Your journey · our mission</div><h2 class="sec" data-i18n="journey_title">One continuous wave</h2><p class="sec-sub" data-i18n="journey_sub">From your first tap to a stronger you — Kinora moves with you.</p></div>
+    <div class="journey">
+      <svg class="journey-svg" id="jsvg" viewBox="0 0 1200 200" preserveAspectRatio="none">
+        <path class="jpath-base" d="M40,150 C300,150 300,60 600,90 C900,120 900,40 1160,40"/>
+        <path class="jpath" id="jpath" d="M40,150 C300,150 300,60 600,90 C900,120 900,40 1160,40"/>
+      </svg>
+      <div class="jsteps">
+        <div class="jstep"><div class="jnode"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="15" rx="2" stroke="#6FFFC2" stroke-width="1.7"/><path d="M4 9h16M9 3v3M15 3v3" stroke="#6FFFC2" stroke-width="1.7" stroke-linecap="round"/></svg></div><div class="ji">01</div><div class="jt" data-i18n="j1_t">Book in seconds</div></div>
+        <div class="jstep"><div class="jnode"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z" stroke="#6FFFC2" stroke-width="1.7"/><circle cx="12" cy="10" r="2.3" stroke="#6FFFC2" stroke-width="1.7"/></svg></div><div class="ji">02</div><div class="jt" data-i18n="j2_t">Go live, anywhere</div></div>
+        <div class="jstep"><div class="jnode"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 13a8 8 0 1116 0" stroke="#6FFFC2" stroke-width="1.7" stroke-linecap="round"/><path d="M12 13l3-3" stroke="#6FFFC2" stroke-width="1.7" stroke-linecap="round"/></svg></div><div class="ji">03</div><div class="jt" data-i18n="j3_t">Train smarter</div></div>
+        <div class="jstep"><div class="jnode"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.5L12 20l-4.9 2.6.9-5.5-4-3.9 5.5-.8z" stroke="#6FFFC2" stroke-width="1.7" stroke-linejoin="round"/></svg></div><div class="ji">04</div><div class="jt" data-i18n="j4_t">Transform every day</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave-divider"><svg viewBox="0 0 1440 90" preserveAspectRatio="none"><path class="wd-base" d="M0,45 C240,85 480,85 720,45 C960,5 1200,5 1440,45"/><path class="wd-flow" d="M0,45 C240,85 480,85 720,45 C960,5 1200,5 1440,45"/></svg></div>
+
+<!-- COACHES -->
+<section class="block" id="coaches" style="padding-top:30px">
+  <div class="wrap">
+    <div class="center reveal"><div class="eyebrow" data-i18n="coaches_eyebrow">Meet the coaches</div><h2 class="sec" data-i18n="coaches_title">Meet our top coaches</h2><p class="sec-sub" data-i18n="coaches_sub">Verified, insured, and ready when you are.</p></div>
+    <div class="coach-grid" id="coachGrid"></div>
+  </div>
+</section>
+
+<!-- ANYWHERE -->
+<section class="anywhere" id="anywhere">
+  <div class="wrap">
+    <div class="center reveal"><div class="eyebrow" data-i18n="any_eyebrow">One platform</div><h2 class="sec" data-i18n="any_title">Infinite possibilities</h2></div>
+    <div class="uc-grid">
+      <div class="uc-card reveal scale">
+        <img src="assets/uc-home.jpg" alt="Personal training at home" loading="lazy">
+        <div class="cap"><div class="t" data-i18n="uc2">From Home</div><div class="d" data-i18n="uc2_d">Your living room becomes the studio.</div></div>
+      </div>
+      <div class="uc-card reveal scale">
+        <img src="assets/uc-outdoors.jpg" alt="Training outdoors at sunrise" loading="lazy">
+        <div class="cap"><div class="t" data-i18n="uc4">Anywhere</div><div class="d" data-i18n="uc4_d">Hotel, park, on the road — just your phone.</div></div>
+      </div>
+      <div class="uc-card reveal scale">
+        <img src="assets/uc-strength.jpg" alt="Strength and conditioning session" loading="lazy">
+        <div class="cap"><div class="t" data-i18n="uc1">Any Goal</div><div class="d" data-i18n="uc1_d">Strength, mobility, fat loss — coached live.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APP DEMO -->
+<section class="block" id="app" style="padding-top:30px">
+  <div class="wrap">
+    <div class="app">
+      <div class="phone reveal scale">
+        <div class="notch"></div>
+        <video src="assets/app-demo.mp4" poster="assets/app-demo-poster.jpg" autoplay muted loop playsinline></video>
+      </div>
+      <div class="app-copy reveal right">
+        <div class="eyebrow" data-i18n="app_eyebrow">The app</div>
+        <h2 data-i18n="app_title">Your whole journey, in one app.</h2>
+        <div class="app-feats">
+          <div class="app-feat"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#6FFFC2" stroke-width="1.6"/><path d="M12 7v5l3 2" stroke="#6FFFC2" stroke-width="1.6" stroke-linecap="round"/></svg></div><div><div class="tt" data-i18n="app_f1_t">Book in seconds</div><div class="dd" data-i18n="app_f1_d">Pick a coach, pick a time, done.</div></div></div>
+          <div class="app-feat"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 17l5-5 3 3 8-9" stroke="#6FFFC2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><div class="tt" data-i18n="app_f2_t">Track every session</div><div class="dd" data-i18n="app_f2_d">Progress and goals between visits.</div></div></div>
+          <div class="app-feat"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 11.5a8.5 8.5 0 01-12.5 7.5L3 20l1.5-5.5A8.5 8.5 0 1121 11.5z" stroke="#6FFFC2" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div><div class="tt" data-i18n="app_f3_t">Chat & reschedule</div><div class="dd" data-i18n="app_f3_d">Stay in touch, no phone numbers shared.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="block" id="pricing" style="padding-top:20px">
+  <div class="wrap">
+    <div class="center reveal"><div class="eyebrow" data-i18n="pricing_eyebrow">Membership</div><h2 class="sec" data-i18n="pricing_title">Simple, flexible pricing</h2><p class="sec-sub" data-i18n="pricing_sub">No contracts. Cancel anytime.</p></div>
+    <div class="tiers">
+      <div class="tier reveal left">
+        <h3 data-i18n="p1_name">Pay as you go</h3><div class="amt">AED 0</div><div class="per" data-i18n="per_month">/ month</div>
+        <p class="desc" data-i18n="p1_d">Book single sessions at standard rates. No commitment.</p>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p1_f1">Browse all coaches</span></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p1_f2">Pay per session</span></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p1_f3">In-app chat &amp; rescheduling</span></li>
+        </ul><button class="btn btn-ghost" data-i18n="choose">Choose plan</button>
+      </div>
+      <div class="tier feat reveal">
+        <div class="tag" data-i18n="popular">Most popular</div>
+        <h3 data-i18n="p2_name">Member</h3><div class="amt">AED 99</div><div class="per" data-i18n="per_month">/ month</div>
+        <p class="desc" data-i18n="p2_d">Discounted sessions plus progress tracking.</p>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p2_f1">10% off every session</span></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p2_f2">Progress &amp; goal tracking</span></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p2_f3">Free coach-swapping</span></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p2_f4">Priority booking</span></li>
+        </ul><button class="btn btn-primary mag" data-i18n="choose">Choose plan</button>
+      </div>
+      <div class="tier reveal right">
+        <h3 data-i18n="p3_name">Elite</h3><div class="amt">AED 599</div><div class="per" data-i18n="per_month">/ month</div>
+        <p class="desc" data-i18n="p3_d">4 sessions included, best value per session.</p>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p3_f1">4 sessions / month included</span></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p3_f2">Everything in Member</span></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p3_f3">Satisfaction guarantee</span></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p3_f4">Dedicated support</span></li>
+        </ul><button class="btn btn-ghost" data-i18n="choose">Choose plan</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARKET -->
+<section class="block" id="market" style="padding-top:10px">
+  <div class="wrap"><div class="market reveal scale">
+    <div><div class="eyebrow" data-i18n="mk_eyebrow">Why now</div><h2 data-i18n="mk_title">A massive market ready for change</h2></div>
+    <div class="mstats">
+      <div class="mstat"><div class="mn" data-count="13" data-prefix="$" data-suffix="B+">0</div><div class="ml" data-i18n="mk_lbl1">Global online fitness market</div></div>
+      <div class="mstat"><div class="mn" data-count="23" data-suffix="%">0</div><div class="ml" data-i18n="mk_lbl2">Projected CAGR · 2023–2030</div></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="block" id="reviews" style="padding-top:20px">
+  <div class="wrap">
+    <div class="center reveal"><div class="eyebrow">Loved by members</div><h2 class="sec">Real people. Real results.</h2></div>
+    <div class="tcards">
+      <div class="tcard reveal left">
+        <div class="trate">★★★★★</div>
+        <div class="quote">"My coach trains me live over video twice a week. No commute, no excuses — I've trained more in two months than the last two years."</div>
+        <div class="who">
+          <img class="av" src="assets/coach-verified.jpg" alt="Ji-eun" style="object-position:70% 36%">
+          <div><div class="nm">Layla A.</div><div class="ro">Member · Dubai</div></div>
+        </div>
+      </div>
+      <div class="tcard reveal">
+        <div class="trate">★★★★★</div>
+        <div class="quote">"Being able to choose a verified female coach on video made all the difference. I finally feel comfortable and consistent."</div>
+        <div class="who">
+          <img class="av" src="assets/coach-arrives.jpg" alt="Amira" style="object-position:50% 18%">
+          <div><div class="nm">Amira H.</div><div class="ro">Member · Abu Dhabi</div></div>
+        </div>
+      </div>
+      <div class="tcard reveal right">
+        <div class="trate">★★★★★</div>
+        <div class="quote">"Booking takes ten seconds and I can swap coaches without losing my progress. It feels like the future of training."</div>
+        <div class="who">
+          <div class="av ph" style="background:linear-gradient(135deg,#6FFFC2,#0E7A5F)">DK</div>
+          <div><div class="nm">Daniel K.</div><div class="ro">Member · Sharjah</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRAINER -->
+<section class="block has-vid" id="trainer" style="padding-top:10px">
+  <video class="bg-vid" src="assets/ambient-glow.mp4" poster="assets/ambient-glow-poster.jpg" autoplay muted loop playsinline></video>
+  <div class="wrap"><div class="trainer reveal">
+    <div>
+      <div class="eyebrow" data-i18n="trainer_eyebrow">For trainers</div>
+      <h2 data-i18n="trainer_title">Are you a trainer?</h2>
+      <p data-i18n="trainer_sub">Grow your client base and earn more — keep up to 85% of every session.</p>
+      <div style="margin-top:26px"><button class="btn btn-primary mag" data-i18n="trainer_cta" onclick="openModal('coach-signup')">Become a Coach</button></div>
+    </div>
+    <div class="earn"><div class="big"><span data-count="85" data-suffix="%">0</span></div><div class="lbl" data-i18n="trainer_earn">You keep per session</div></div>
+  </div></div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="#" style="font-size:16px"><svg class="mark" viewBox="0 0 48 48" fill="none" style="width:28px;height:28px"><rect x="1.5" y="1.5" width="45" height="45" rx="13" stroke="url(#kg)" stroke-width="2"/><rect x="1.5" y="1.5" width="45" height="45" rx="13" fill="url(#kgf)"/><path d="M17 11 V37" stroke="url(#kg)" stroke-width="4.4" stroke-linecap="round"/><path d="M33 13 C20 17 20 30 33 35" stroke="#6FFFC2" stroke-width="4.4" stroke-linecap="round" fill="none"/><path d="M17 24 L26 24" stroke="url(#kg)" stroke-width="4.4" stroke-linecap="round"/></svg>KINORA</a>
+        <p data-i18n="footer_tag">Personal training, reimagined. Trainers you trust, anywhere you are.</p>
+      </div>
+      <div class="foot-col"><h4 data-i18n="footer_clients">For Clients</h4><a href="#coaches" data-i18n="footer_browse">Browse coaches</a><a href="#pricing" data-i18n="footer_pricing">Pricing</a><a href="#how" data-i18n="footer_how">How it works</a></div>
+      <div class="foot-col"><h4 data-i18n="footer_trainers">For Trainers</h4><a href="#trainer" data-i18n="footer_become">Become a coach</a><a href="#trainer" data-i18n="footer_earn">Earnings</a></div>
+      <div class="foot-col"><h4 data-i18n="footer_company">Company</h4><a href="#" data-i18n="footer_about">About</a><a href="#" data-i18n="footer_contact">Contact</a><a href="#" data-i18n="footer_safety">Trust &amp; Safety</a></div>
+    </div>
+    <div class="foot-bottom"><div>© 2026 KINORA. <span data-i18n="footer_rights">All rights reserved.</span></div><div>New York · Dubai · Shanghai · Seoul</div></div>
+  </div>
+</footer>
+
+<div class="overlay" id="overlay"><div class="modal"><span class="close" onclick="closeModal()">×</span><div id="modalBody"></div></div></div>
+
+<script>
+const I18N = {
+  en:{label:"EN",flag:"🇬🇧",dir:"ltr",nav_clients:"For Clients",nav_trainers:"For Trainers",nav_how:"How It Works",nav_about:"Coaches",cta_start:"Get Started",cta_book:"Book a Session",cta_learn:"Learn More",tagline:"The future of personal training",hero_1:"Personal training,",hero_2:"reimagined.",hero_sub:"Expert coaches. Wherever you are. Whenever you want.",stat_coaches:"Verified coaches",stat_rating:"Average rating",stat_cities:"Cities",pil_move_t:"Movement",pil_move_d:"Forward always",pil_conn_t:"Connection",pil_conn_d:"Built on trust",pil_grow_t:"Growth",pil_grow_d:"Everyday better",pil_trans_t:"Transformation",pil_trans_d:"Stronger you",how_eyebrow:"How it works",how_title:"How Kinora works",how_sub:"Three steps to your first session.",s1_t:"Find your coach",s1_d:"Browse verified trainers. Match by goal, schedule, and language.",s2_t:"Book in seconds",s2_d:"Pick a time. Your coach joins you on a live video call — wherever you are.",s3_t:"Train & track",s3_d:"Follow your personalized plan and track progress between every session.",journey_eyebrow:"Your journey · our mission",journey_title:"One continuous wave",journey_sub:"From your first tap to a stronger you — Kinora moves with you.",j1_t:"Book in seconds",j2_t:"Go live, anywhere",j3_t:"Train smarter",j4_t:"Transform every day",coaches_eyebrow:"Meet the coaches",coaches_title:"Meet our top coaches",coaches_sub:"Verified, insured, and ready on live video when you are.",verified:"Verified",per_session:"/ session",book:"Book",sp_strength:"Strength",sp_yoga:"Yoga & Mobility",sp_loss:"Weight Loss",sp_boxing:"Boxing",sp_prenatal:"Prenatal",sp_rehab:"Rehab",any_eyebrow:"One platform",any_title:"Infinite possibilities",uc1:"Any Goal",uc2:"From Home",uc3:"At Work",uc4:"Anywhere",uc5:"On Your Terms",pricing_eyebrow:"Membership",pricing_title:"Simple, flexible pricing",pricing_sub:"No contracts. Cancel anytime.",per_month:"/ month",p1_name:"Pay as you go",p1_d:"Book single sessions at standard rates. No commitment.",p1_f1:"Browse all coaches",p1_f2:"Pay per session",p1_f3:"In-app chat & rescheduling",p2_name:"Member",p2_d:"Discounted sessions plus progress tracking.",p2_f1:"10% off every session",p2_f2:"Progress & goal tracking",p2_f3:"Free coach-swapping",p2_f4:"Priority booking",p3_name:"Elite",p3_d:"4 sessions included, best value per session.",p3_f1:"4 sessions / month included",p3_f2:"Everything in Member",p3_f3:"Satisfaction guarantee",p3_f4:"Dedicated support",popular:"Most popular",choose:"Choose plan",mk_eyebrow:"Why now",mk_title:"A massive market ready for change",mk_lbl1:"Global online fitness market",mk_lbl2:"Projected CAGR · 2023–2030",trainer_eyebrow:"For trainers",trainer_title:"Are you a trainer?",trainer_sub:"Grow your client base and earn more — keep up to 85% of every session.",trainer_cta:"Become a Coach",trainer_earn:"You keep per session",footer_tag:"Personal training, reimagined. Live coaching you trust, anywhere you are.",footer_clients:"For Clients",footer_browse:"Browse coaches",footer_pricing:"Pricing",footer_how:"How it works",footer_trainers:"For Trainers",footer_become:"Become a coach",footer_earn:"Earnings",footer_company:"Company",footer_about:"About",footer_contact:"Contact",footer_safety:"Trust & Safety",footer_rights:"All rights reserved.",m_title:"Book your free intro session",m_with:"with",m_date:"Select date",m_time:"Select time",m_loc:"Goal",m_loc_ph:"e.g. fat loss, strength, mobility",m_confirm:"Request free intro session",m_or:"or",m_whatsapp:"Book via WhatsApp",m_note:"We\u2019ll confirm your free intro session by email or WhatsApp.",m_success:"Request received!",m_success_sub:"We\u2019ll reach out by email or WhatsApp to confirm your time.",cs_title:"Become a Kinora coach",cs_sub:"Coach clients live over video, on your own schedule.",cs_name:"Full name",cs_email:"Email",cs_spec:"Your specialty",cs_submit:"Apply now",cs_done:"Application received!",cs_done_sub:"We'll be in touch within 48 hours."},
+
+  ar:{label:"AR",flag:"🇦🇪",dir:"rtl",nav_clients:"للعملاء",nav_trainers:"للمدربين",nav_how:"كيف يعمل",nav_about:"المدربون",cta_start:"ابدأ الآن",cta_book:"احجز جلسة",cta_learn:"اعرف المزيد",tagline:"مستقبل التدريب الشخصي",hero_1:"التدريب الشخصي،",hero_2:"بحُلّة جديدة.",hero_sub:"مدربون خبراء. أينما كنت. متى ما أردت.",stat_coaches:"مدرب موثوق",stat_rating:"متوسط التقييم",stat_cities:"مدينة",pil_move_t:"الحركة",pil_move_d:"دائماً إلى الأمام",pil_conn_t:"التواصل",pil_conn_d:"مبني على الثقة",pil_grow_t:"النمو",pil_grow_d:"أفضل كل يوم",pil_trans_t:"التحوّل",pil_trans_d:"نسخة أقوى منك",how_eyebrow:"كيف يعمل",how_title:"كيف تعمل كينورا",how_sub:"ثلاث خطوات نحو جلستك الأولى.",s1_t:"اعثر على مدربك",s1_d:"تصفح المدربين الموثوقين بالقرب منك. طابق حسب الهدف والجدول واللغة.",s2_t:"احجز في ثوانٍ",s2_d:"اختر الوقت. ينضم إليك مدربك عبر مكالمة فيديو مباشرة — أينما كنت.",s3_t:"تدرّب وتابع",s3_d:"اتبع خطتك الشخصية وتابع تقدمك بين كل جلسة وأخرى.",journey_eyebrow:"رحلتك · مهمتنا",journey_title:"موجة واحدة مستمرة",journey_sub:"من أول نقرة إلى نسخة أقوى منك — كينورا تتحرك معك.",j1_t:"احجز في ثوانٍ",j2_t:"انطلق أينما كنت",j3_t:"تدرّب بذكاء",j4_t:"تحوّل كل يوم",coaches_eyebrow:"تعرّف على المدربين",coaches_title:"أفضل المدربين بالقرب منك",coaches_sub:"موثوقون ومؤمَّنون وجاهزون عندما تكون مستعداً.",verified:"موثّق",per_session:"/ جلسة",book:"احجز",sp_strength:"قوة",sp_yoga:"يوغا ومرونة",sp_loss:"إنقاص الوزن",sp_boxing:"ملاكمة",sp_prenatal:"ما قبل الولادة",sp_rehab:"تأهيل",any_eyebrow:"منصة واحدة",any_title:"إمكانات لا حدود لها",uc1:"تدريب شخصي",uc2:"في المنزل",uc3:"في العمل",uc4:"في الهواء الطلق",uc5:"بشروطك",pricing_eyebrow:"العضوية",pricing_title:"أسعار بسيطة ومرنة",pricing_sub:"بدون عقود. ألغِ في أي وقت.",per_month:"/ شهر",p1_name:"الدفع عند الاستخدام",p1_d:"احجز جلسات فردية بالأسعار العادية. بدون التزام.",p1_f1:"تصفح كل المدربين",p1_f2:"ادفع لكل جلسة",p1_f3:"محادثة وإعادة جدولة داخل التطبيق",p2_name:"عضو",p2_d:"جلسات مخفّضة مع متابعة التقدم.",p2_f1:"خصم 10٪ على كل جلسة",p2_f2:"متابعة التقدم والأهداف",p2_f3:"تبديل المدرب مجاناً",p2_f4:"حجز بأولوية",p3_name:"النخبة",p3_d:"4 جلسات مشمولة، أفضل قيمة لكل جلسة.",p3_f1:"4 جلسات شهرياً مشمولة",p3_f2:"كل مزايا العضو",p3_f3:"ضمان الرضا",p3_f4:"دعم مخصّص",popular:"الأكثر شيوعاً",choose:"اختر الباقة",mk_eyebrow:"لماذا الآن",mk_title:"سوق ضخم جاهز للتغيير",mk_lbl1:"سوق اللياقة الرقمي عالمياً",mk_lbl2:"معدل النمو السنوي المتوقع · 2023–2030",trainer_eyebrow:"للمدربين",trainer_title:"هل أنت مدرب؟",trainer_sub:"وسّع قاعدة عملائك واربح أكثر — احتفظ بما يصل إلى 85٪ من كل جلسة.",trainer_cta:"كن مدرباً",trainer_earn:"تحتفظ بها لكل جلسة",footer_tag:"التدريب الشخصي بحُلّة جديدة. مدربون تثق بهم، أينما كنت.",footer_clients:"للعملاء",footer_browse:"تصفح المدربين",footer_pricing:"الأسعار",footer_how:"كيف يعمل",footer_trainers:"للمدربين",footer_become:"كن مدرباً",footer_earn:"الأرباح",footer_company:"الشركة",footer_about:"من نحن",footer_contact:"تواصل",footer_safety:"الثقة والأمان",footer_rights:"جميع الحقوق محفوظة.",m_title:"احجز جلسة",m_with:"مع",m_date:"اختر التاريخ",m_time:"اختر الوقت",m_loc:"الموقع",m_loc_ph:"منزلك أو الصالة أو الحديقة",m_confirm:"تأكيد الحجز",m_note:"هذا نموذج أولي — لا يتم إجراء حجز حقيقي.",m_success:"تم طلب الجلسة!",m_success_sub:"سيؤكد مدربك قريباً.",cs_title:"كن مدرباً في كينورا",cs_sub:"انضم إلى أكثر من 2,400 مدرب يكسبون وفق جدولهم.",cs_name:"الاسم الكامل",cs_email:"البريد الإلكتروني",cs_spec:"تخصصك",cs_submit:"قدّم الآن",cs_done:"تم استلام طلبك!",cs_done_sub:"سنتواصل معك خلال 48 ساعة."},
+
+  zh:{label:"ZH",flag:"🇨🇳",dir:"ltr",nav_clients:"为客户",nav_trainers:"为教练",nav_how:"运作方式",nav_about:"教练",cta_start:"开始使用",cta_book:"预约课程",cta_learn:"了解更多",tagline:"私人健身训练的未来",hero_1:"私人训练，",hero_2:"焕然一新。",hero_sub:"专业教练。无论你在哪里。随时随地。",stat_coaches:"认证教练",stat_rating:"平均评分",stat_cities:"城市",pil_move_t:"运动",pil_move_d:"始终向前",pil_conn_t:"连接",pil_conn_d:"建立于信任",pil_grow_t:"成长",pil_grow_d:"每天更好",pil_trans_t:"蜕变",pil_trans_d:"更强的你",how_eyebrow:"运作方式",how_title:"Kinora 如何运作",how_sub:"三步开启你的第一节课。",s1_t:"找到你的教练",s1_d:"浏览附近的认证教练，按目标、时间和语言匹配。",s2_t:"几秒内预约",s2_d:"选择时间。教练通过实时视频通话加入你——无论你在哪里。",s3_t:"训练与追踪",s3_d:"遵循专属计划，在每节课之间追踪你的进步。",journey_eyebrow:"你的旅程 · 我们的使命",journey_title:"一道持续的浪潮",journey_sub:"从第一次轻点到更强的你——Kinora 与你同行。",j1_t:"几秒内预约",j2_t:"随时随地连线",j3_t:"更聪明地训练",j4_t:"每天蜕变",coaches_eyebrow:"认识教练",coaches_title:"附近的优质教练",coaches_sub:"经过认证、已投保，随时为你待命。",verified:"已认证",per_session:"/ 节",book:"预约",sp_strength:"力量",sp_yoga:"瑜伽与柔韧",sp_loss:"减重",sp_boxing:"拳击",sp_prenatal:"产前",sp_rehab:"康复",any_eyebrow:"一个平台",any_title:"无限可能",uc1:"私人训练",uc2:"在家",uc3:"在公司",uc4:"户外",uc5:"按你的方式",pricing_eyebrow:"会员",pricing_title:"简单灵活的定价",pricing_sub:"无合约，随时取消。",per_month:"/ 月",p1_name:"按次付费",p1_d:"按标准价预约单节课程，无需承诺。",p1_f1:"浏览所有教练",p1_f2:"按节付费",p1_f3:"应用内聊天与改期",p2_name:"会员",p2_d:"折扣课程加进度追踪。",p2_f1:"每节课9折",p2_f2:"进度与目标追踪",p2_f3:"免费更换教练",p2_f4:"优先预约",p3_name:"精英",p3_d:"含4节课，每节最超值。",p3_f1:"每月含4节课",p3_f2:"包含会员全部权益",p3_f3:"满意保证",p3_f4:"专属支持",popular:"最受欢迎",choose:"选择方案",mk_eyebrow:"为何是现在",mk_title:"一个亟待变革的庞大市场",mk_lbl1:"全球在线健身市场",mk_lbl2:"预计复合年增长率 · 2023–2030",trainer_eyebrow:"为教练",trainer_title:"你是教练吗？",trainer_sub:"扩大客户群，赚得更多——每节课最高可保留85%。",trainer_cta:"成为教练",trainer_earn:"每节课你的所得",footer_tag:"私人训练，焕然一新。值得信赖的教练，无论你在哪里。",footer_clients:"为客户",footer_browse:"浏览教练",footer_pricing:"定价",footer_how:"运作方式",footer_trainers:"为教练",footer_become:"成为教练",footer_earn:"收益",footer_company:"公司",footer_about:"关于",footer_contact:"联系",footer_safety:"信任与安全",footer_rights:"版权所有。",m_title:"预约课程",m_with:"与",m_date:"选择日期",m_time:"选择时间",m_loc:"地点",m_loc_ph:"你家、健身房或公园",m_confirm:"确认预约",m_note:"这是原型——不会进行真实预约。",m_success:"已提交预约！",m_success_sub:"教练将很快确认。",cs_title:"成为 Kinora 教练",cs_sub:"加入2,400多名按自己时间赚钱的教练。",cs_name:"全名",cs_email:"邮箱",cs_spec:"你的专长",cs_submit:"立即申请",cs_done:"已收到申请！",cs_done_sub:"我们将在48小时内联系你。"},
+
+  ru:{label:"RU",flag:"🇷🇺",dir:"ltr",nav_clients:"Клиентам",nav_trainers:"Тренерам",nav_how:"Как это работает",nav_about:"Тренеры",cta_start:"Начать",cta_book:"Записаться",cta_learn:"Подробнее",tagline:"Будущее персональных тренировок",hero_1:"Персональные тренировки —",hero_2:"по-новому.",hero_sub:"Опытные тренеры. Где угодно. Когда угодно.",stat_coaches:"Проверенных тренеров",stat_rating:"Средний рейтинг",stat_cities:"Города",pil_move_t:"Движение",pil_move_d:"Всегда вперёд",pil_conn_t:"Связь",pil_conn_d:"Основано на доверии",pil_grow_t:"Рост",pil_grow_d:"Лучше каждый день",pil_trans_t:"Преображение",pil_trans_d:"Сильнее, чем вчера",how_eyebrow:"Как это работает",how_title:"Как работает Kinora",how_sub:"Три шага до первой тренировки.",s1_t:"Найдите тренера",s1_d:"Выбирайте проверенных тренеров рядом по цели, расписанию и языку.",s2_t:"Запись за секунды",s2_d:"Выберите время. Тренер подключится к вам по видеосвязи — где бы вы ни были.",s3_t:"Тренируйтесь и следите",s3_d:"Следуйте персональному плану и отслеживайте прогресс между тренировками.",journey_eyebrow:"Ваш путь · наша миссия",journey_title:"Одна непрерывная волна",journey_sub:"От первого касания до сильной версии себя — Kinora движется с вами.",j1_t:"Запись за секунды",j2_t:"Онлайн где угодно",j3_t:"Тренируйтесь умнее",j4_t:"Меняйтесь каждый день",coaches_eyebrow:"Наши тренеры",coaches_title:"Лучшие тренеры рядом",coaches_sub:"Проверены, застрахованы и готовы, когда вы готовы.",verified:"Проверен",per_session:"/ сессия",book:"Записаться",sp_strength:"Сила",sp_yoga:"Йога и гибкость",sp_loss:"Снижение веса",sp_boxing:"Бокс",sp_prenatal:"Для беременных",sp_rehab:"Реабилитация",any_eyebrow:"Одна платформа",any_title:"Бесконечные возможности",uc1:"Персональные тренировки",uc2:"Дома",uc3:"На работе",uc4:"На улице",uc5:"На ваших условиях",pricing_eyebrow:"Подписка",pricing_title:"Простые гибкие тарифы",pricing_sub:"Без договоров. Отмена в любой момент.",per_month:"/ месяц",p1_name:"Оплата за визит",p1_d:"Записывайтесь на отдельные сессии по стандартной цене. Без обязательств.",p1_f1:"Все тренеры",p1_f2:"Оплата за сессию",p1_f3:"Чат и перенос в приложении",p2_name:"Участник",p2_d:"Скидки на сессии и отслеживание прогресса.",p2_f1:"−10% на каждую сессию",p2_f2:"Прогресс и цели",p2_f3:"Бесплатная смена тренера",p2_f4:"Приоритетная запись",p3_name:"Элита",p3_d:"4 сессии включены, лучшая цена за сессию.",p3_f1:"4 сессии в месяц включены",p3_f2:"Всё из «Участник»",p3_f3:"Гарантия удовлетворённости",p3_f4:"Персональная поддержка",popular:"Популярный",choose:"Выбрать тариф",mk_eyebrow:"Почему сейчас",mk_title:"Огромный рынок, готовый к переменам",mk_lbl1:"Мировой рынок онлайн-фитнеса",mk_lbl2:"Прогноз CAGR · 2023–2030",trainer_eyebrow:"Тренерам",trainer_title:"Вы тренер?",trainer_sub:"Расширяйте клиентскую базу и зарабатывайте больше — оставляйте себе до 85% за сессию.",trainer_cta:"Стать тренером",trainer_earn:"Остаётся вам за сессию",footer_tag:"Персональные тренировки по-новому. Тренеры, которым доверяют, где бы вы ни были.",footer_clients:"Клиентам",footer_browse:"Тренеры",footer_pricing:"Тарифы",footer_how:"Как это работает",footer_trainers:"Тренерам",footer_become:"Стать тренером",footer_earn:"Доход",footer_company:"Компания",footer_about:"О нас",footer_contact:"Контакты",footer_safety:"Доверие и безопасность",footer_rights:"Все права защищены.",m_title:"Запись на сессию",m_with:"с",m_date:"Выберите дату",m_time:"Выберите время",m_loc:"Место",m_loc_ph:"Дом, зал или парк",m_confirm:"Подтвердить запись",m_note:"Это прототип — реальная запись не создаётся.",m_success:"Заявка отправлена!",m_success_sub:"Тренер скоро подтвердит.",cs_title:"Станьте тренером Kinora",cs_sub:"Присоединяйтесь к 2400+ тренерам, работающим по своему графику.",cs_name:"Имя и фамилия",cs_email:"Эл. почта",cs_spec:"Ваша специализация",cs_submit:"Подать заявку",cs_done:"Заявка получена!",cs_done_sub:"Мы свяжемся с вами в течение 48 часов."},
+
+  ko:{label:"KO",flag:"🇰🇷",dir:"ltr",nav_clients:"회원용",nav_trainers:"트레이너용",nav_how:"이용 방법",nav_about:"트레이너",cta_start:"시작하기",cta_book:"세션 예약",cta_learn:"더 알아보기",tagline:"퍼스널 트레이닝의 미래",hero_1:"퍼스널 트레이닝,",hero_2:"새롭게.",hero_sub:"전문 코치. 어디에 있든. 언제 원하든.",stat_coaches:"인증 트레이너",stat_rating:"평균 평점",stat_cities:"개 도시",pil_move_t:"움직임",pil_move_d:"언제나 앞으로",pil_conn_t:"연결",pil_conn_d:"신뢰 위에",pil_grow_t:"성장",pil_grow_d:"매일 더 나아지게",pil_trans_t:"변화",pil_trans_d:"더 강한 당신",how_eyebrow:"이용 방법",how_title:"Kinora 이용 방법",how_sub:"첫 세션까지 단 세 단계.",s1_t:"트레이너 찾기",s1_d:"내 주변 인증 트레이너를 둘러보고 목표·일정·언어로 매칭하세요.",s2_t:"몇 초 만에 예약",s2_d:"시간을 고르세요. 어디에 있든 트레이너가 실시간 영상으로 함께합니다.",s3_t:"운동하고 기록하기",s3_d:"나만의 플랜을 따르고 세션마다 진행 상황을 기록하세요.",journey_eyebrow:"당신의 여정 · 우리의 미션",journey_title:"하나의 연속된 물결",journey_sub:"첫 터치부터 더 강한 당신까지 — Kinora가 함께 움직입니다.",j1_t:"몇 초 만에 예약",j2_t:"어디서든 실시간",j3_t:"더 스마트하게 훈련",j4_t:"매일 변화하기",coaches_eyebrow:"트레이너 소개",coaches_title:"내 주변 인기 트레이너",coaches_sub:"인증·보험 완료, 언제든 준비되어 있습니다.",verified:"인증됨",per_session:"/ 세션",book:"예약",sp_strength:"근력",sp_yoga:"요가·유연성",sp_loss:"체중 감량",sp_boxing:"복싱",sp_prenatal:"산전",sp_rehab:"재활",any_eyebrow:"하나의 플랫폼",any_title:"무한한 가능성",uc1:"퍼스널 트레이닝",uc2:"집에서",uc3:"직장에서",uc4:"야외에서",uc5:"당신의 방식대로",pricing_eyebrow:"멤버십",pricing_title:"간단하고 유연한 요금제",pricing_sub:"약정 없음. 언제든 해지 가능.",per_month:"/ 월",p1_name:"이용한 만큼 결제",p1_d:"표준 요금으로 단일 세션을 예약하세요. 약정 없음.",p1_f1:"모든 트레이너 둘러보기",p1_f2:"세션별 결제",p1_f3:"앱 내 채팅·일정 변경",p2_name:"멤버",p2_d:"할인 세션과 진행 기록 제공.",p2_f1:"모든 세션 10% 할인",p2_f2:"진행·목표 기록",p2_f3:"무료 트레이너 변경",p2_f4:"우선 예약",p3_name:"엘리트",p3_d:"4세션 포함, 세션당 최고의 가치.",p3_f1:"매월 4세션 포함",p3_f2:"멤버 혜택 전부 포함",p3_f3:"만족 보장",p3_f4:"전담 지원",popular:"가장 인기",choose:"플랜 선택",mk_eyebrow:"왜 지금인가",mk_title:"변화를 기다리는 거대한 시장",mk_lbl1:"글로벌 온라인 피트니스 시장",mk_lbl2:"예상 연평균 성장률 · 2023–2030",trainer_eyebrow:"트레이너용",trainer_title:"트레이너이신가요?",trainer_sub:"고객을 늘리고 더 많이 버세요 — 세션당 최대 85%를 가져가세요.",trainer_cta:"트레이너 되기",trainer_earn:"세션당 내 수익",footer_tag:"퍼스널 트레이닝, 새롭게. 믿을 수 있는 트레이너가 어디에나.",footer_clients:"회원용",footer_browse:"트레이너 보기",footer_pricing:"요금제",footer_how:"이용 방법",footer_trainers:"트레이너용",footer_become:"트레이너 되기",footer_earn:"수익",footer_company:"회사",footer_about:"소개",footer_contact:"문의",footer_safety:"신뢰와 안전",footer_rights:"모든 권리 보유.",m_title:"세션 예약",m_with:"트레이너:",m_date:"날짜 선택",m_time:"시간 선택",m_loc:"장소",m_loc_ph:"집, 헬스장 또는 공원",m_confirm:"예약 확정",m_note:"프로토타입입니다 — 실제 예약은 되지 않습니다.",m_success:"세션 요청 완료!",m_success_sub:"트레이너가 곧 확인합니다.",cs_title:"Kinora 트레이너 되기",cs_sub:"자기 일정대로 버는 2,400명 이상의 트레이너와 함께하세요.",cs_name:"이름",cs_email:"이메일",cs_spec:"전문 분야",cs_submit:"지금 지원",cs_done:"지원이 접수되었습니다!",cs_done_sub:"48시간 이내에 연락드리겠습니다."}
+};
+
+const COACHES = [
+  {name:"Omar Haddad",initials:"OH",spec:"sp_strength",rating:"4.9",price:"AED 180",langs:["AR","EN"],grad:"linear-gradient(135deg,#6FFFC2,#0E7A5F)"},
+  {name:"Sara Al-Rashid",initials:"SA",spec:"sp_yoga",rating:"5.0",price:"AED 160",langs:["AR","EN"],grad:"linear-gradient(135deg,#1faa7e,#6FFFC2)"},
+  {name:"Daniel Cohen",initials:"DC",spec:"sp_loss",rating:"4.8",price:"AED 150",langs:["EN"],grad:"linear-gradient(135deg,#8affd4,#0E7A5F)"},
+  {name:"Priya Nair",initials:"PN",spec:"sp_boxing",rating:"4.9",price:"AED 190",langs:["EN","HI"],grad:"linear-gradient(135deg,#0E7A5F,#6FFFC2)"},
+  {name:"Anna Volkova",initials:"AV",spec:"sp_prenatal",rating:"5.0",price:"AED 170",langs:["RU","EN"],grad:"linear-gradient(135deg,#6FFFC2,#1faa7e)"},
+  {name:"Liang Wei",initials:"LW",spec:"sp_rehab",rating:"4.7",price:"AED 185",langs:["ZH","EN"],grad:"linear-gradient(135deg,#3fd9a3,#0E7A5F)"}
+];
+
+let LANG="en";
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function t(k){return (I18N[LANG]&&I18N[LANG][k])||I18N.en[k]||k;}
+function go(id){document.getElementById(id).scrollIntoView();}
+
+function renderCoaches(){
+  document.getElementById("coachGrid").innerHTML = COACHES.map((c,i)=>`
+    <div class="coach reveal scale tilt" style="transition-delay:${i*55}ms">
+      <div class="coach-top"><div class="coach-av" style="background:${c.grad}">${c.initials}</div>
+        <div><div class="coach-name">${c.name} <span class="badge">✓ ${t('verified')}</span></div><div class="coach-role">${t(c.spec)}</div></div></div>
+      <div class="coach-meta"><span class="stars">★ ${c.rating}</span></div>
+      <div class="speaks">${c.langs.map(l=>`<span class="lang-chip">${l}</span>`).join("")}</div>
+      <div class="coach-foot"><div class="price"><span class="p">${c.price}</span> <span class="u">${t('per_session')}</span></div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('book',${i})">${t('book')}</button></div>
+    </div>`).join("");
+  bindTilt(); observeReveal();
+}
+
+function applyLang(lang){
+  LANG=lang;const cfg=I18N[lang];const h=document.documentElement;
+  h.setAttribute("lang",lang);h.setAttribute("dir",cfg.dir);
+  document.getElementById("langFlag").textContent=cfg.flag;
+  document.getElementById("langLabel").textContent=cfg.label;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.getAttribute("data-i18n");if(I18N[lang][k]!==undefined)el.textContent=I18N[lang][k];});
+  document.querySelectorAll(".lang-item").forEach(it=>it.classList.toggle("active",it.dataset.lang===lang));
+  renderCoaches();
+}
+
+const langBtn=document.getElementById("langBtn"),langMenu=document.getElementById("langMenu");
+langBtn.addEventListener("click",e=>{e.stopPropagation();langMenu.classList.toggle("open");});
+document.addEventListener("click",()=>langMenu.classList.remove("open"));
+document.querySelectorAll(".lang-item").forEach(it=>it.addEventListener("click",()=>{applyLang(it.dataset.lang);langMenu.classList.remove("open");}));
+
+/* modal */
+const overlay=document.getElementById("overlay"),modalBody=document.getElementById("modalBody");
+
+/* ===== CONFIG — fill these two in before launch ===== */
+const FORMSPREE_ID = "xojbordw";          // e.g. "xmyzabcd" from formspree.io
+const WHATSAPP_NUMBER = "971521206827";       // partner's UAE WhatsApp, digits only, country code first
+/* ==================================================== */
+
+function openModal(type,idx){
+  if(type==="book"){const c=COACHES[idx];
+    const waMsg=encodeURIComponent(`Hi Kinora! I'd like to book a free intro session with ${c.name}.`);
+    modalBody.innerHTML=`<h3>${t('m_title')}</h3><div class="mwith">${t('m_with')} ${c.name} · ${t(c.spec)}</div>
+      <form action="https://formspree.io/f/${FORMSPREE_ID}" method="POST" onsubmit="return bookSubmit(this)">
+        <input type="hidden" name="coach" value="${c.name}">
+        <div class="field"><label>${t('cs_name')}</label><input type="text" name="name" required></div>
+        <div class="field"><label>${t('cs_email')}</label><input type="email" name="email" required></div>
+        <div class="field"><label>WhatsApp</label><input type="tel" name="whatsapp" placeholder="+971 ..." required></div>
+        <div class="field"><label>${t('m_date')}</label><input type="date" name="preferred_date"></div>
+        <div class="field"><label>${t('m_loc')}</label><input type="text" name="goal" placeholder="${t('m_loc_ph')}"></div>
+        <button class="btn btn-primary" style="width:100%" type="submit">${t('m_confirm')}</button>
+      </form>
+      <div style="text-align:center;color:var(--gray);font-size:12.5px;margin:14px 0 10px">— ${t('m_or')||'or'} —</div>
+      <a class="btn btn-ghost" style="width:100%;justify-content:center;display:flex" href="https://wa.me/${WHATSAPP_NUMBER}?text=${waMsg}" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-inline-end:8px"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-2.8.7.7-2.8-.2-.3A8 8 0 1112 20zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.6 6.6 0 01-1.9-1.2 7.3 7.3 0 01-1.4-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4 5 5 0 002.2.5 2.7 2.7 0 001.8-1.3 2.2 2.2 0 00.2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>
+        ${t('m_whatsapp')||'Book via WhatsApp'}
+      </a>
+      <div class="note">${t('m_note')}</div>`;
+  }else{
+    const waMsg=encodeURIComponent("Hi Kinora! I'd like to apply as a coach.");
+    modalBody.innerHTML=`<h3>${t('cs_title')}</h3><div class="mwith">${t('cs_sub')}</div>
+      <form action="https://formspree.io/f/${FORMSPREE_ID}" method="POST" onsubmit="return coachSubmit(this)">
+        <input type="hidden" name="type" value="coach-application">
+        <div class="field"><label>${t('cs_name')}</label><input type="text" name="name" required></div>
+        <div class="field"><label>${t('cs_email')}</label><input type="email" name="email" required></div>
+        <div class="field"><label>WhatsApp</label><input type="tel" name="whatsapp" placeholder="+971 ..." required></div>
+        <div class="field"><label>${t('cs_spec')}</label><input type="text" name="specialty" required></div>
+        <button class="btn btn-primary" style="width:100%" type="submit">${t('cs_submit')}</button>
+      </form>
+      <div style="text-align:center;color:var(--gray);font-size:12.5px;margin:14px 0 10px">— ${t('m_or')||'or'} —</div>
+      <a class="btn btn-ghost" style="width:100%;justify-content:center;display:flex" href="https://wa.me/${WHATSAPP_NUMBER}?text=${waMsg}" target="_blank" rel="noopener">${t('m_whatsapp')||'Apply via WhatsApp'}</a>`;
+  }
+  overlay.classList.add("open");
+}
+function closeModal(){overlay.classList.remove("open");}
+overlay.addEventListener("click",e=>{if(e.target===overlay)closeModal();});
+function successView(a,b){modalBody.innerHTML=`<div class="success"><div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>${a}</h3><p>${b}</p><button class="btn btn-ghost" style="margin-top:22px" onclick="closeModal()">OK</button></div>`;}
+
+/* Submit via fetch so the user stays on-page; falls back to normal POST if JS/network hiccups */
+async function ajaxForm(form){
+  const data=new FormData(form);
+  const r=await fetch(form.action,{method:"POST",body:data,headers:{'Accept':'application/json'}});
+  if(!r.ok) throw new Error("submit failed");
+}
+function bookSubmit(form){
+  if(FORMSPREE_ID==="YOUR_FORM_ID"){alert("Set your Formspree ID first (see CONFIG in the code).");return false;}
+  ajaxForm(form).then(()=>successView(t('m_success'),t('m_success_sub')))
+    .catch(()=>{alert("Something went wrong — please try the WhatsApp option.");});
+  return false;
+}
+function coachSubmit(form){
+  if(FORMSPREE_ID==="YOUR_FORM_ID"){alert("Set your Formspree ID first (see CONFIG in the code).");return false;}
+  ajaxForm(form).then(()=>successView(t('cs_done'),t('cs_done_sub')))
+    .catch(()=>{alert("Something went wrong — please try the WhatsApp option.");});
+  return false;
+}
+
+/* reveal + count-up + journey */
+function observeReveal(){
+  /* Fallback: if Motion's CDN failed to load, reveal everything instantly
+     so no section is ever stuck invisible. */
+  if(!window.Motion){
+    document.querySelectorAll(".reveal:not(.in)").forEach(el=>el.classList.add("in"));
+    return;
+  }
+  document.querySelectorAll(".reveal:not([data-mr])").forEach(el=>{
+    el.setAttribute("data-mr","1");          // register once, never double-bind
+    let kf;
+    if(el.classList.contains("left"))       kf={opacity:[0,1],x:[-40,0]};
+    else if(el.classList.contains("right")) kf={opacity:[0,1],x:[40,0]};
+    else if(el.classList.contains("scale")) kf={opacity:[0,1],scale:[.94,1]};
+    else                                    kf={opacity:[0,1],y:[28,0]};
+    const dl=(parseFloat(el.style.transitionDelay)||0)/1000;  // keep coach-card stagger
+    let done=false;
+    window.Motion.inView(el,()=>{
+      if(done)return; done=true;            // animate a single time
+      el.classList.add("in");
+      if(reduced){el.style.opacity=1;el.style.transform="none";return;}
+      window.Motion.animate(el,kf,{type:"spring",stiffness:90,damping:15,delay:dl});
+    },{amount:.12});
+  });
+}
+function countUp(el){
+  const target=parseFloat(el.dataset.count),dec=parseInt(el.dataset.decimals||"0"),
+    pre=el.dataset.prefix||"",suf=el.dataset.suffix||"",comma=el.hasAttribute("data-comma");
+  if(reduced){el.textContent=pre+fmt(target,dec,comma)+suf;return;}
+  let s=null,dur=1400;
+  function step(ts){if(!s)s=ts;const p=Math.min((ts-s)/dur,1);const v=target*(1-Math.pow(1-p,3));
+    el.textContent=pre+fmt(v,dec,comma)+suf;if(p<1)requestAnimationFrame(step);}
+  requestAnimationFrame(step);
+}
+function fmt(v,dec,comma){let n=dec?v.toFixed(dec):Math.round(v).toString();if(comma)n=n.replace(/\B(?=(\d{3})+(?!\d))/g,",");return n;}
+const countObs=new IntersectionObserver((es,ob)=>{es.forEach(en=>{if(en.isIntersecting){countUp(en.target);ob.unobserve(en.target);}});},{threshold:.5});
+document.querySelectorAll("[data-count]").forEach(el=>countObs.observe(el));
+
+/* journey path draw */
+const jpath=document.getElementById("jpath");
+if(jpath){const len=jpath.getTotalLength();jpath.style.strokeDasharray=len;jpath.style.strokeDashoffset=len;
+  const jObs=new IntersectionObserver((es,ob)=>{es.forEach(en=>{if(en.isIntersecting){
+    if(!reduced){jpath.style.transition="stroke-dashoffset 2.4s ease";}
+    jpath.style.strokeDashoffset=0;
+    document.querySelectorAll(".jstep").forEach((s,i)=>setTimeout(()=>s.classList.add("in"),reduced?0:i*450));
+    ob.disconnect();}});},{threshold:.4});
+  jObs.observe(document.getElementById("jsvg"));}
+
+/* tilt */
+const finePointer = matchMedia('(pointer:fine)').matches;
+function bindTilt(){
+  if(reduced||!finePointer)return;
+  document.querySelectorAll(".tilt").forEach(c=>{
+    c.onmousemove=e=>{const r=c.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+      c.style.transform=`perspective(800px) rotateY(${x*7}deg) rotateX(${-y*7}deg) translateY(-5px)`;};
+    c.onmouseleave=()=>{c.style.transform="";};
+  });
+}
+/* magnetic buttons */
+if(!reduced && finePointer)document.querySelectorAll(".mag").forEach(b=>{
+  b.addEventListener("mousemove",e=>{const r=b.getBoundingClientRect();b.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.18}px,${(e.clientY-r.top-r.height/2)*.28}px)`;});
+  b.addEventListener("mouseleave",()=>b.style.transform="");
+});
+
+/* header scroll + progress + spotlight */
+const header=document.getElementById("header"),progress=document.getElementById("progress"),spot=document.getElementById("spot");
+function onScroll(){const sc=scrollY,max=document.body.scrollHeight-innerHeight;
+  progress.style.width=(sc/max*100)+"%";header.classList.toggle("scrolled",sc>20);}
+addEventListener("scroll",onScroll,{passive:true});onScroll();
+if(!reduced && finePointer){let mx=0,my=0,sraf=0;
+  addEventListener("mousemove",e=>{mx=e.clientX;my=e.clientY;
+    if(!sraf)sraf=requestAnimationFrame(()=>{spot.style.left=mx+"px";spot.style.top=my+"px";sraf=0;});},{passive:true});
+}else if(spot){spot.style.display="none";}
+
+/* ===== Kinora Wave (canvas) — perf-optimized ===== */
+const cv=document.getElementById("wave"),ctx=cv.getContext("2d");
+let W,H,dpr;
+function resize(){dpr=Math.min(devicePixelRatio||1,1.5);const r=cv.getBoundingClientRect();W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);}
+addEventListener("resize",resize);resize();
+const LINES=7;
+const parts=[...Array(26)].map(()=>({x:Math.random(),y:Math.random(),s:Math.random()*1.6+.5,sp:Math.random()*.0005+.0001}));
+let tm=0;
+function render(){
+  ctx.clearRect(0,0,W,H);const mid=H*.52;
+  for(let i=0;i<LINES;i++){
+    const pr=i/(LINES-1),amp=H*.12*(.55+pr),freq=1.0+pr*.5,ph=tm*.5+i*.55,yo=mid+(pr-.5)*H*.18;
+    const bright=i===3;
+    // glow without expensive shadowBlur: wide low-alpha underlay, then crisp line
+    for(let pass=0;pass<(bright?2:1);pass++){
+      ctx.beginPath();
+      for(let x=0;x<=W;x+=12){const nx=x/W;const y=yo+Math.sin(nx*Math.PI*freq+ph)*amp*Math.sin(nx*Math.PI);x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+      if(bright&&pass===0){ctx.lineWidth=8;ctx.strokeStyle="rgba(111,255,194,.16)";}
+      else if(bright){ctx.lineWidth=2.4;ctx.strokeStyle="rgba(111,255,194,.92)";}
+      else{ctx.lineWidth=1;ctx.strokeStyle="rgba(31,170,126,"+(.08+pr*.16)+")";}
+      ctx.stroke();
+    }
+  }
+  for(const p of parts){p.x+=p.sp+.0006;if(p.x>1)p.x=0;
+    const px=p.x*W,py=(p.y*.4+.32)*H+Math.sin(p.x*Math.PI*2+tm)*18;
+    ctx.beginPath();ctx.arc(px,py,p.s,0,7);ctx.fillStyle="rgba(111,255,194,"+(.25+p.s*.18)+")";ctx.fill();}
+}
+let rafId=0,last=0;
+function loop(ts){
+  rafId=requestAnimationFrame(loop);
+  if(document.hidden)return;
+  if(ts-last<33)return;          // cap ~30fps
+  last=ts;tm+=.024;render();
+}
+function startWave(){if(!rafId&&!reduced)rafId=requestAnimationFrame(loop);}
+function stopWave(){if(rafId){cancelAnimationFrame(rafId);rafId=0;}}
+render();                         // paint one static frame immediately
+/* play looping videos only while visible */
+const vidObs=new IntersectionObserver(es=>es.forEach(e=>{
+  const v=e.target; if(e.isIntersecting){v.play&&v.play().catch(()=>{});}else{v.pause&&v.pause();}
+}),{threshold:.1});
+document.querySelectorAll("video[loop]").forEach(v=>vidObs.observe(v));
+if(!reduced){
+  // only animate while the hero is actually on screen
+  new IntersectionObserver(es=>{es.forEach(e=>e.isIntersecting?startWave():stopWave());},{threshold:0}).observe(document.querySelector(".hero"));
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&document.querySelector(".hero").getBoundingClientRect().bottom>0)startWave();});
+}
+
+/* init */
+applyLang("en");
+observeReveal();
+
+/* register the service worker (installable PWA + offline) */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>

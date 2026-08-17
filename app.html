@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>KINORA — Find your coach</title>
+<meta name="description" content="Answer a few questions and we'll match you to a live Kinora coach.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#070a09">
+<!-- PWA (installable web app) -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kinora">
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+<!-- Nunito: rounded, friendly display font for headings (BetterMe-style feel) -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<!-- Motion (spring-physics animation library) — same as the marketing site -->
+<script src="https://cdn.jsdelivr.net/npm/motion@12.40.0/dist/motion.js"></script>
+<style>
+  :root{
+    --bg:#070a09; --bg-2:#0c1310; --panel:#12140f; --panel-2:#0e100c;
+    --mint:#6FFFC2; --green:#0E7A5F; --green-soft:#1faa7e;
+    --white:#F4F8F6; --gray:#93a39b; --line:rgba(111,255,194,.13); --line-2:rgba(255,255,255,.07);
+    --display:'Satoshi',system-ui,sans-serif; --body:'Satoshi',system-ui,sans-serif;
+    --rounded:'Nunito','Satoshi',system-ui,sans-serif;   /* rounded headings */
+  }
+  html[lang="ar"]{ --display:"Segoe UI",Tahoma,system-ui,sans-serif; --body:"Segoe UI",Tahoma,system-ui,sans-serif; --rounded:"Segoe UI",Tahoma,system-ui,sans-serif; }
+  html[lang="zh"]{ --display:'Satoshi',"PingFang SC","Microsoft YaHei",system-ui,sans-serif; --body:"PingFang SC","Microsoft YaHei",system-ui,sans-serif; --rounded:'Nunito',"PingFang SC","Microsoft YaHei",system-ui,sans-serif; }
+  html[lang="ko"]{ --display:'Satoshi',"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif; --body:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif; --rounded:'Nunito',"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif; }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--white);font-family:var(--body);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;min-height:100dvh}
+  ::selection{background:var(--mint);color:#04130d}
+  button{font-family:inherit}
+
+  /* atmosphere (shared with marketing site) */
+  .atmos{position:fixed;inset:0;z-index:-1;overflow:hidden}
+  .glow{position:absolute;border-radius:50%;filter:blur(130px)}
+  .glow.a{width:560px;height:560px;background:radial-gradient(circle,#0E7A5F,transparent 70%);opacity:.35;top:-180px;left:-120px}
+  .glow.b{width:520px;height:520px;background:radial-gradient(circle,#6FFFC2,transparent 70%);opacity:.07;top:52%;right:-180px}
+  .grid-tex{position:absolute;inset:0;background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);background-size:66px 66px;mask-image:radial-gradient(circle at 50% 0,#000,transparent 72%)}
+
+  /* shell layout */
+  .app{min-height:100dvh;display:flex;flex-direction:column;max-width:640px;margin:0 auto;padding:0 22px;padding:0 max(22px,env(safe-area-inset-left)) 0 max(22px,env(safe-area-inset-right))}
+
+  /* top bar: back · progress · step / lang */
+  .top{display:flex;align-items:center;gap:14px;padding:20px 0 8px;padding-top:max(20px,env(safe-area-inset-top))}
+  .iconbtn{width:40px;height:40px;flex:0 0 auto;border-radius:12px;border:1px solid var(--line-2);background:rgba(255,255,255,.02);color:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;opacity:1}
+  .iconbtn:hover{border-color:var(--mint);color:var(--mint)}
+  .iconbtn[hidden]{visibility:hidden;pointer-events:none}
+  html[dir="rtl"] .iconbtn svg{transform:scaleX(-1)}
+  .bar{flex:1;height:6px;border-radius:100px;background:rgba(255,255,255,.07);overflow:hidden}
+  .bar-fill{height:100%;width:0;border-radius:100px;background:linear-gradient(90deg,var(--green),var(--mint));box-shadow:0 0 12px rgba(111,255,194,.5);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .step{font-size:12.5px;font-weight:600;color:var(--gray);white-space:nowrap;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+
+  /* mini brand row */
+  .brand{display:flex;align-items:center;justify-content:center;gap:9px;font-family:var(--display);font-weight:700;letter-spacing:.3em;font-size:13px;color:var(--gray);padding:10px 0 2px}
+  .brand svg{width:20px;height:20px}
+
+  /* stage */
+  .stage{flex:1;display:flex;flex-direction:column;justify-content:center;padding:24px 0 8px}
+  .q-eyebrow{color:var(--mint);font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:11.5px;margin-bottom:16px}
+  .q-title{font-family:var(--display);font-weight:900;font-size:clamp(26px,6.5vw,38px);line-height:1.1;letter-spacing:-.02em;min-height:1.1em}
+  .q-title .caret{display:inline-block;width:2px;height:.92em;margin-inline-start:3px;background:var(--mint);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .q-sub{color:var(--gray);font-size:15.5px;margin-top:14px;max-width:460px}
+
+  .options{display:flex;flex-direction:column;gap:12px;margin-top:32px}
+  .opt{display:flex;align-items:center;gap:15px;width:100%;text-align:start;background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:16px;padding:17px 18px;cursor:pointer;color:var(--white);transition:border-color .2s,transform .12s,background .2s;position:relative}
+  .opt:hover{border-color:var(--line);transform:translateY(-1px)}
+  .opt:active{transform:translateY(0) scale(.995)}
+  .opt .radio{width:24px;height:24px;flex:0 0 auto;border-radius:50%;border:2px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;transition:.2s}
+  .opt .radio svg{opacity:0;transform:scale(.5);transition:.2s}
+  .opt .label{font-family:var(--display);font-weight:700;font-size:16.5px;flex:1}
+  .opt .idx{font-size:12px;color:var(--gray);border:1px solid var(--line-2);border-radius:7px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:600}
+  .opt.sel{border-color:var(--mint);background:linear-gradient(165deg,rgba(111,255,194,.10),rgba(14,122,95,.05));box-shadow:0 0 0 1px var(--mint),0 18px 40px rgba(111,255,194,.10)}
+  .opt.sel .radio{border-color:var(--mint);background:var(--mint)}
+  .opt.sel .radio svg{opacity:1;transform:scale(1)}
+  .opt.sel .idx{border-color:var(--mint);color:var(--mint)}
+  .opt .flag{font-size:20px;flex:0 0 auto}
+
+  /* searchable location step */
+  .searchbox{position:relative;margin-top:26px}
+  .searchbox svg{position:absolute;top:50%;transform:translateY(-50%);inset-inline-start:15px;color:var(--gray);pointer-events:none}
+  .searchbox input{width:100%;background:#070b09;border:1px solid var(--line-2);border-radius:12px;padding:14px 14px 14px 44px;color:var(--white);font-family:var(--body);font-size:15px;transition:border-color .2s}
+  html[dir="rtl"] .searchbox input{padding:14px 44px 14px 14px}
+  .searchbox input:focus{outline:none;border-color:var(--mint)}
+  .searchbox input::placeholder{color:#4c5a53}
+  .options.scrolly{max-height:46vh;overflow-y:auto;margin-top:14px;padding-inline-end:4px;scrollbar-width:thin}
+  .options.scrolly::-webkit-scrollbar{width:6px}
+  .options.scrolly::-webkit-scrollbar-thumb{background:var(--line);border-radius:100px}
+  .no-city{color:var(--gray);text-align:center;padding:26px 16px;font-size:14px}
+
+  /* footer note */
+  .foot{padding:16px 0 max(22px,env(safe-area-inset-bottom));text-align:center;color:var(--gray);font-size:12px}
+  .foot .lockrow{display:inline-flex;align-items:center;gap:6px;opacity:.7}
+
+  /* lang menu (compact, reused idea) */
+  .lang{position:relative}
+  .lang-btn{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.02);border:1px solid var(--line-2);color:var(--white);padding:8px 11px;border-radius:11px;font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;transition:.2s;height:40px}
+  .lang-btn:hover{border-color:var(--mint)} .lang-btn .chev{font-size:9px;color:var(--gray)}
+  .lang-menu{position:absolute;top:48px;inset-inline-end:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px;min-width:170px;box-shadow:0 24px 60px rgba(0,0,0,.6);opacity:0;visibility:hidden;transform:translateY(-6px);transition:.18s;z-index:60}
+  .lang-menu.open{opacity:1;visibility:visible;transform:translateY(0)}
+  .lang-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;transition:.15s}
+  .lang-item:hover{background:rgba(111,255,194,.08)} .lang-item.active{background:rgba(111,255,194,.12);color:var(--mint)}
+  .lang-item .flag{font-size:16px}
+
+  /* completion (temporary Phase-1 end screen) */
+  .done{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+  .done .ic{width:74px;height:74px;border-radius:50%;background:rgba(111,255,194,.12);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+  .done h2{font-family:var(--display);font-weight:900;font-size:clamp(24px,5.5vw,32px);letter-spacing:-.02em;line-height:1.12}
+  .done p{color:var(--gray);font-size:15.5px;max-width:420px}
+  .btn{font-family:var(--display);font-weight:700;font-size:15px;border:none;cursor:pointer;border-radius:12px;transition:transform .15s,box-shadow .25s;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:14px 24px;margin-top:24px}
+  .btn-primary{background:var(--mint);color:#04130d}
+  .btn-primary:hover{box-shadow:0 14px 34px rgba(111,255,194,.3)}
+  .btn-ghost{background:transparent;color:var(--white);border:1px solid var(--line-2)}
+  .btn-ghost:hover{border-color:var(--mint);color:var(--mint)}
+
+  /* ============================================================
+     QUIZ REDESIGN — BetterMe-style UX, Kinora mint kept.
+     (Appended after base rules so these overrides win.)
+     ============================================================ */
+  .atmos .glow.a{opacity:.14} .atmos .glow.b{opacity:.05}
+  .brand{display:none}
+  /* top bar */
+  .top{padding:16px 0 8px;padding-top:max(16px,env(safe-area-inset-top));gap:12px}
+  .section-name{flex:1;text-align:center;font-family:var(--rounded);font-weight:800;font-size:15px;color:var(--white);letter-spacing:.01em;min-width:0}
+  /* segmented progress */
+  .segs{display:flex;gap:6px;margin:2px 0 4px}
+  .seg{flex:1;height:4px;border-radius:100px;background:rgba(255,255,255,.09);overflow:hidden}
+  .seg > span{display:block;height:100%;width:0;border-radius:100px;background:linear-gradient(90deg,var(--green),var(--mint));box-shadow:0 0 10px rgba(111,255,194,.5);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+
+  /* stage top-aligned */
+  .stage{justify-content:flex-start;padding-top:22px}
+  /* heading: rounded + centered */
+  .q-title{font-family:var(--rounded);font-weight:900;font-size:clamp(26px,5.8vw,37px);text-align:center;letter-spacing:-.01em;line-height:1.16;min-height:auto}
+  .q-title .caret{height:.86em}
+  .q-sub{text-align:center;margin-inline:auto;font-size:15px}
+
+  /* option cards */
+  .options{max-width:520px;margin-inline:auto;width:100%;margin-top:28px;gap:13px}
+  .options.scrolly{max-height:46vh}
+  .opt{border-radius:16px;padding:18px;gap:14px;background:#14170f;border:1px solid rgba(255,255,255,.05);transition:background .18s,border-color .18s,transform .1s}
+  .opt:hover{border-color:rgba(255,255,255,.12);transform:none}
+  .opt .label{font-family:var(--rounded);font-weight:700;font-size:16px}
+  .opt .idx{display:none}
+  .opt .radio{order:3;margin-inline-start:auto}
+  .opt.multi .radio{border-radius:7px}
+  /* selected = mint fill + dark check (kept mint, not BetterMe cream) */
+  .opt.sel{background:var(--mint);border-color:var(--mint);box-shadow:none}
+  .opt.sel .label{color:#04130d}
+  .opt.sel .flag{filter:none}
+  .opt.sel .radio{border-color:#04130d;background:#04130d}
+  .opt.sel .radio svg path{stroke:var(--mint)}
+
+  /* bottom CTA (mint pill) — for multi / number / search / interstitial */
+  .cta-bar{position:sticky;bottom:0;max-width:520px;margin-inline:auto;width:100%;padding:14px 0 max(16px,env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent,var(--bg) 34%);z-index:5}
+  .cta{width:100%;font-family:var(--rounded);font-weight:800;font-size:16px;border:none;border-radius:100px;padding:16px;background:var(--mint);color:#04130d;cursor:pointer;transition:box-shadow .25s,opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .cta:hover{box-shadow:0 14px 34px rgba(111,255,194,.3)}
+  .cta[disabled]{opacity:.32;pointer-events:none}
+  .cta-skip{display:block;margin:12px auto 0;background:none;border:none;color:var(--gray);font-family:var(--body);font-weight:700;font-size:13px;letter-spacing:.04em;cursor:pointer;text-transform:uppercase}
+
+  /* number step */
+  .numstep{max-width:440px;margin-inline:auto;width:100%;background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:22px;padding:28px 24px;margin-top:22px}
+  .unit-toggle{display:flex;background:rgba(255,255,255,.05);border-radius:100px;padding:4px;width:max-content;margin:0 auto 22px}
+  .unit-toggle button{border:none;background:none;color:var(--gray);font-family:var(--rounded);font-weight:800;padding:7px 20px;border-radius:100px;cursor:pointer;font-size:13.5px}
+  .unit-toggle button.on{background:var(--mint);color:#04130d}
+  .numrow{display:flex;align-items:baseline;justify-content:center;gap:12px;border-bottom:2px solid var(--line-2);padding-bottom:10px}
+  .numrow input{font-family:var(--rounded);font-weight:900;font-size:54px;background:none;border:none;color:var(--white);text-align:end;width:2.6ch;outline:none;padding:0}
+  .numrow .unit{font-family:var(--rounded);font-weight:800;font-size:26px;color:var(--gray)}
+  .infocard{display:flex;gap:11px;align-items:flex-start;background:rgba(111,255,194,.06);border:1px solid var(--line);border-radius:14px;padding:14px 15px;margin-top:20px;font-size:13.5px;color:var(--gray)}
+  .infocard svg{flex:0 0 auto;color:var(--mint);margin-top:1px}
+
+  /* interstitial (social proof / trust) */
+  .inter{max-width:540px;margin-inline:auto;width:100%;text-align:center;padding-top:8px}
+  .inter h1{font-family:var(--rounded);font-weight:900;font-size:clamp(26px,6vw,38px);line-height:1.12;letter-spacing:-.01em}
+  .inter .stat{margin:30px 0 6px}
+  .inter .stat .big{font-family:var(--rounded);font-weight:900;font-size:clamp(52px,15vw,84px);color:var(--mint);line-height:1}
+  .inter .stat .sub{color:var(--gray);font-size:15px;margin-top:4px}
+  .review{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:18px;padding:20px;text-align:start;max-width:470px;margin:24px auto 0}
+  .review .stars{color:var(--mint);letter-spacing:3px;font-size:15px}
+  .review .rtext{margin:10px 0 8px;font-size:15px;line-height:1.55}
+  .review .rname{color:var(--gray);font-size:13px;font-weight:700}
+  .inter .why{margin-top:26px}
+  .inter .why-item{text-align:start}
+
+  /* analyzing loader */
+  .analyzing{max-width:520px;margin-inline:auto;width:100%;padding-top:12px}
+  .analyzing h1{font-family:var(--rounded);font-weight:900;font-size:clamp(25px,5.6vw,34px);text-align:center;margin-bottom:32px}
+  .an-row{margin-bottom:22px}
+  .an-row .l{display:flex;justify-content:space-between;align-items:center;font-family:var(--rounded);font-weight:800;margin-bottom:9px;font-size:15px}
+  .an-row .l .pct{color:var(--gray);font-variant-numeric:tabular-nums}
+  .an-bar{height:7px;border-radius:100px;background:rgba(255,255,255,.08);overflow:hidden}
+  .an-bar > span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--green),var(--mint));border-radius:100px;transition:width .5s ease}
+  .an-check{color:var(--mint)}
+
+  /* ===== Phase 2: personalized results / coach match ===== */
+  .stage.scroll{justify-content:flex-start;padding-top:12px}
+  .results{display:flex;flex-direction:column;gap:26px;padding-bottom:8px}
+  .r-head h1{font-family:var(--rounded);font-weight:900;font-size:clamp(26px,6.5vw,38px);line-height:1.12;letter-spacing:-.02em;margin-top:12px;text-align:center}
+  .r-head .q-eyebrow{text-align:center}
+  /* profile card (BetterMe "wellness profile" style) */
+  .profile-card{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:20px;padding:22px}
+  .meter{margin:4px 0 2px;padding-top:24px}
+  .meter-scale{position:relative;height:12px;border-radius:100px;background:linear-gradient(90deg,#8affd4,#6FFFC2,#1faa7e,#0E7A5F)}
+  html[dir="rtl"] .meter-scale{background:linear-gradient(270deg,#8affd4,#6FFFC2,#1faa7e,#0E7A5F)}
+  .meter-mark{position:absolute;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--mint);box-shadow:0 0 0 3px var(--bg)}
+  html[dir="rtl"] .meter-mark{transform:translate(50%,-50%)}
+  .meter-bub{position:absolute;bottom:24px;inset-inline-start:50%;transform:translateX(-50%);white-space:nowrap;background:var(--mint);color:#04130d;font-family:var(--rounded);font-weight:800;font-size:12.5px;padding:4px 12px;border-radius:100px}
+  html[dir="rtl"] .meter-bub{transform:translateX(50%)}
+  .meter-ticks{display:flex;justify-content:space-between;margin-top:13px;color:var(--gray);font-size:11.5px;font-weight:700;font-family:var(--rounded)}
+  .callout{display:flex;gap:11px;align-items:flex-start;background:rgba(111,255,194,.08);border:1px solid var(--line);border-radius:14px;padding:14px 15px;margin:20px 0 4px}
+  .callout svg{color:var(--mint);flex:0 0 auto;margin-top:1px}
+  .callout b{font-family:var(--rounded);font-weight:800;font-size:14px;display:block;margin-bottom:3px}
+  .callout span{color:var(--gray);font-size:13.5px;line-height:1.5}
+  .traits{display:grid;grid-template-columns:1fr 1fr;gap:15px 16px;margin-top:22px}
+  .trait{display:flex;gap:11px;align-items:center;min-width:0}
+  .trait .ti{width:38px;height:38px;border-radius:11px;border:1px solid var(--line-2);background:rgba(111,255,194,.05);display:flex;align-items:center;justify-content:center;flex:0 0 auto;color:var(--mint)}
+  .trait .tl{color:var(--gray);font-size:11.5px}
+  .trait .tv{font-family:var(--rounded);font-weight:800;font-size:14px;margin-top:1px;word-break:break-word}
+  @media(max-width:520px){.traits{grid-template-columns:1fr}}
+  .pcard-name{font-family:var(--rounded)}
+  .r-head p{color:var(--gray);font-size:15.5px;margin-top:12px;max-width:480px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--white);background:rgba(111,255,194,.06);border:1px solid var(--line);padding:7px 12px;border-radius:100px}
+  .chip .cd{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint);flex:0 0 auto}
+  .section-label{color:var(--mint);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:11.5px;margin-bottom:13px}
+
+  .pcard{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--mint);border-radius:20px;overflow:hidden;box-shadow:0 0 0 1px rgba(111,255,194,.22),0 30px 70px rgba(0,0,0,.5)}
+  .pcard-top{padding:22px;display:flex;gap:16px;align-items:center;border-bottom:1px solid var(--line-2)}
+  .pcard-av{width:66px;height:66px;border-radius:18px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:23px;color:#04130d}
+  .pcard-name{font-family:var(--display);font-weight:900;font-size:20px;letter-spacing:-.01em;line-height:1.15}
+  .pcard-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--mint);background:rgba(111,255,194,.1);padding:3px 9px;border-radius:100px;margin-top:7px}
+  .pmeta{display:flex;flex-direction:column;gap:13px;padding:20px 22px}
+  .pmeta-row{display:flex;gap:12px;font-size:14px;align-items:center}
+  .pmeta-row .ml{color:var(--gray);min-width:104px;flex:0 0 auto}
+  .pmeta-row .mv{font-weight:600}
+  .langchips{display:flex;gap:6px;flex-wrap:wrap}
+  .langchip{font-size:11px;color:var(--gray);border:1px solid var(--line-2);padding:2px 9px;border-radius:100px;font-weight:600}
+
+  .session{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:18px;padding:8px 22px}
+  .tl-row{display:flex;align-items:center;gap:14px;padding:12px 0}
+  .tl-row:not(:last-child){border-bottom:1px solid var(--line-2)}
+  .tl-dur{font-family:var(--display);font-weight:900;font-size:13.5px;color:var(--mint);width:70px;flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .tl-name{font-weight:600;font-size:15px}
+  .tl-row.main{background:rgba(111,255,194,.045);margin:0 -22px;padding-inline:22px}
+  .tl-row.main .tl-name{font-weight:800}
+
+  .plan{background:linear-gradient(120deg,#0d1812,#0a120e);border:1px solid var(--line);border-radius:20px;padding:26px 24px;text-align:center;position:relative;overflow:hidden}
+  .plan::after{content:"";position:absolute;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(111,255,194,.12),transparent 70%);inset-inline-end:-90px;bottom:-120px}
+  .plan .big{font-family:var(--display);font-weight:900;font-size:clamp(42px,13vw,64px);color:var(--mint);line-height:1;position:relative}
+  .plan .unit{color:var(--white);font-size:15px;font-weight:600;margin-top:4px;position:relative}
+  .plan .dots{display:flex;justify-content:center;gap:9px;margin:18px 0 4px;position:relative}
+  .plan .dot{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--line-2)}
+  .plan .dot.on{background:var(--mint);border-color:var(--mint);box-shadow:0 0 12px rgba(111,255,194,.5)}
+  .plan .pnote{color:var(--gray);font-size:12.5px;margin-top:14px;position:relative}
+
+  .why{display:grid;grid-template-columns:1fr;gap:12px}
+  .why-item{display:flex;gap:13px;align-items:flex-start;background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:16px;padding:16px 18px}
+  .why-item .wi{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:rgba(111,255,194,.05);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .why-item .wt{font-family:var(--display);font-weight:700;font-size:15px}
+  .why-item .wd{color:var(--gray);font-size:13.5px;margin-top:2px}
+
+  .r-cta{position:sticky;bottom:0;padding:14px 0 max(16px,env(safe-area-inset-bottom));background:linear-gradient(180deg,transparent,var(--bg) 36%);z-index:5}
+  .r-cta .btn{width:100%;font-size:16px;padding:16px 24px}
+  .r-guarantee{display:flex;gap:7px;align-items:flex-start;justify-content:center;color:var(--gray);font-size:12px;margin-top:11px;text-align:center;max-width:430px;margin-inline:auto}
+  .r-guarantee svg{flex:0 0 auto;margin-top:1px}
+  @media(min-width:640px){.why{grid-template-columns:repeat(3,1fr)}}
+
+  /* ===== Phase 3: pricing / paywall ===== */
+  .app.wide{max-width:980px}
+  .pay{display:flex;flex-direction:column;gap:26px;padding-bottom:20px}
+  .pay-head h1{font-family:var(--display);font-weight:900;font-size:clamp(26px,6.5vw,38px);line-height:1.1;letter-spacing:-.02em;margin-top:12px}
+  .pay-head p{color:var(--gray);font-size:15.5px;margin-top:12px;max-width:480px}
+  .pay-note{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--gray);background:rgba(111,255,194,.05);border:1px dashed var(--line);border-radius:10px;padding:8px 13px}
+
+  .tierlist{display:grid;grid-template-columns:1fr;gap:16px;align-items:stretch}
+  .tier{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:20px;padding:26px 24px;display:flex;flex-direction:column;position:relative}
+  .tier.pop{border-color:var(--mint);box-shadow:0 0 0 1px var(--mint),0 26px 60px rgba(111,255,194,.10)}
+  .tier .ptag{position:absolute;top:-12px;inset-inline-start:24px;background:var(--mint);color:#04130d;font-size:11.5px;font-weight:700;padding:5px 13px;border-radius:100px}
+  .tier .tname{font-family:var(--display);font-weight:800;font-size:18px}
+  .tier .price{display:flex;align-items:baseline;gap:6px;margin:14px 0 2px}
+  .tier .cur{font-family:var(--display);font-weight:800;font-size:16px;color:var(--gray)}
+  .tier .amt{font-family:var(--display);font-weight:900;font-size:36px;letter-spacing:-.02em}
+  .tier .per{color:var(--gray);font-size:13.5px}
+  .tier .tdesc{color:var(--gray);font-size:13.5px;margin:12px 0 18px}
+  .tier ul{list-style:none;display:flex;flex-direction:column;gap:11px;margin-bottom:20px;flex:1}
+  .tier li{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+  .tier li svg{flex:0 0 auto;margin-top:3px}
+  .tier .btn{width:100%}
+
+  .compare-wrap{overflow-x:auto;border:1px solid var(--line-2);border-radius:16px;-webkit-overflow-scrolling:touch}
+  .compare{width:100%;border-collapse:collapse;min-width:540px;font-size:13.5px}
+  .compare th,.compare td{padding:13px 15px;text-align:start;border-bottom:1px solid var(--line-2);vertical-align:middle}
+  .compare thead th{font-family:var(--display);font-weight:800;font-size:14px;background:rgba(255,255,255,.02)}
+  .compare thead th.popcol{color:var(--mint)}
+  .compare tbody th{font-weight:600;color:var(--gray)}
+  .compare td.col{text-align:center;font-weight:600}
+  .compare td.popcol{background:rgba(111,255,194,.035)}
+  .compare tr:last-child td,.compare tr:last-child th{border-bottom:none}
+  .compare .yes{color:var(--mint)} .compare .no{color:var(--gray);opacity:.45}
+
+  .trust3{display:grid;grid-template-columns:1fr;gap:11px;background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:16px;padding:18px 20px}
+  .trust3 .ti{display:flex;gap:10px;align-items:center;font-size:14px;font-weight:600}
+  .trust3 .ti svg{color:var(--mint);flex:0 0 auto}
+  @media(min-width:640px){.trust3{grid-template-columns:repeat(3,1fr)}}
+  @media(min-width:820px){.tierlist{grid-template-columns:repeat(3,1fr)}}
+
+  /* ===== Phase 3 redesign: countdown checkout (BetterMe-style) ===== */
+  .countbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;background:rgba(7,10,9,.86);backdrop-filter:blur(12px);border-bottom:1px solid var(--line-2);margin:0 -22px 4px;padding:11px max(22px,env(safe-area-inset-left))}
+  .countbar .cb-label{color:var(--gray);font-size:12.5px;font-weight:600}
+  .countbar .cb-time{font-family:var(--rounded);font-weight:900;font-size:20px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+  .countbar .cb-btn{background:var(--mint);color:#04130d;border:none;border-radius:100px;font-family:var(--rounded);font-weight:800;font-size:13.5px;padding:9px 18px;cursor:pointer;transition:box-shadow .2s}
+  .countbar .cb-btn:hover{box-shadow:0 10px 26px rgba(111,255,194,.3)}
+  .pay-head h1{font-family:var(--rounded);text-align:center}
+  .pay-head{text-align:center}
+  .pay-note{margin-inline:auto}
+
+  .beforeafter{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:0;background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:20px;overflow:hidden}
+  .ba-col{padding:20px}
+  .ba-col.goal{background:rgba(111,255,194,.05)}
+  .ba-h{font-family:var(--rounded);font-weight:800;font-size:13px;color:var(--gray);text-transform:uppercase;letter-spacing:.08em;text-align:center;padding-bottom:14px;border-bottom:1px solid var(--line-2);margin-bottom:14px}
+  .ba-col.goal .ba-h{color:var(--mint)}
+  .ba-item{margin-bottom:13px}
+  .ba-item:last-child{margin-bottom:0}
+  .ba-item .k{color:var(--gray);font-size:11.5px}
+  .ba-item .v{font-family:var(--rounded);font-weight:800;font-size:14.5px;margin-top:2px}
+  .ba-arrow{display:flex;align-items:center;color:var(--mint);font-size:24px;font-weight:900}
+  html[dir="rtl"] .ba-arrow{transform:scaleX(-1)}
+
+  .promo{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:rgba(111,255,194,.1);border:1px dashed var(--mint);border-radius:14px;padding:12px 16px}
+  .promo .pl{display:flex;align-items:center;gap:8px;font-family:var(--rounded);font-weight:800;font-size:13.5px;color:var(--mint)}
+  .promo .pr{font-variant-numeric:tabular-nums;font-weight:800;color:var(--white);font-size:13px}
+
+  .plans{display:grid;grid-template-columns:1fr;gap:13px}
+  .plan-card{position:relative;text-align:start;width:100%;background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1.5px solid var(--line-2);border-radius:18px;padding:18px 20px;cursor:pointer;color:var(--white);transition:border-color .18s,box-shadow .2s}
+  .plan-card.pop{border-color:var(--mint)}
+  .plan-card.sel{border-color:var(--mint);box-shadow:0 0 0 1px var(--mint),0 18px 40px rgba(111,255,194,.1)}
+  .pc-banner{position:absolute;top:-11px;inset-inline-start:20px;background:var(--mint);color:#04130d;font-family:var(--rounded);font-weight:800;font-size:11px;padding:4px 12px;border-radius:100px}
+  .pc-body{display:flex;align-items:center;gap:14px}
+  .pc-name{font-family:var(--rounded);font-weight:800;font-size:17px}
+  .pc-orig{margin-top:4px;font-size:12.5px;color:var(--gray);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pc-orig s{opacity:.8}
+  .pc-orig .save{background:rgba(111,255,194,.14);color:var(--mint);font-weight:800;padding:2px 8px;border-radius:100px;font-size:11px}
+  .pc-price{margin-inline-start:auto;font-family:var(--rounded);font-weight:900;font-size:26px;line-height:1;text-align:end;white-space:nowrap}
+  .pc-price .pc-cur{font-size:14px;color:var(--gray);font-weight:800;margin-inline-end:3px}
+  .pc-unit{color:var(--gray);font-size:11.5px;text-align:end;margin-top:3px}
+  .pc-radio{width:24px;height:24px;flex:0 0 auto;border-radius:50%;border:2px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center}
+  .pc-radio svg{opacity:0}
+  .plan-card.sel .pc-radio{border-color:var(--mint);background:var(--mint)}
+  .plan-card.sel .pc-radio svg{opacity:1}
+
+  /* payment-method selector (Stripe methods) */
+  .pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pm-tile{display:flex;align-items:center;gap:10px;background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1.5px solid var(--line-2);border-radius:14px;padding:14px 15px;cursor:pointer;color:var(--white);text-align:start;transition:border-color .18s,box-shadow .2s}
+  .pm-tile.span2{grid-column:1 / -1}
+  .pm-tile.sel{border-color:var(--mint);box-shadow:0 0 0 1px var(--mint)}
+  .pm-radio{width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.18);flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .pm-radio svg{opacity:0}
+  .pm-tile.sel .pm-radio{border-color:var(--mint);background:var(--mint)}
+  .pm-tile.sel .pm-radio svg{opacity:1}
+  .pm-name{font-family:var(--rounded);font-weight:800;font-size:14px;display:flex;align-items:center;gap:7px}
+  .pm-brands{margin-inline-start:auto;display:flex;gap:5px;flex-wrap:wrap}
+  .pm-brands i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.02em;color:var(--gray);border:1px solid var(--line-2);border-radius:5px;padding:3px 6px;background:rgba(255,255,255,.03)}
+  .pm-note2{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--gray);font-size:12px;margin-top:13px}
+  .renew-note{color:var(--gray);font-size:12px;text-align:center;max-width:460px;margin:0 auto;line-height:1.5}
+  @media(min-width:760px){.plans{grid-template-columns:repeat(3,1fr);align-items:stretch}.plan-card{display:flex;flex-direction:column}.pc-body{flex-direction:column;align-items:flex-start;gap:10px}.pc-price{margin-inline-start:0;text-align:start}.pc-unit{text-align:start}.pc-radio{position:absolute;top:18px;inset-inline-end:18px}}
+
+  /* ===== Phase 4: auth shell ===== */
+  .auth{max-width:440px;width:100%;margin:0 auto;display:flex;flex-direction:column}
+  .auth-head{text-align:center}
+  .auth-head h1{font-family:var(--display);font-weight:900;font-size:clamp(24px,6vw,32px);letter-spacing:-.02em;line-height:1.12;margin-top:10px}
+  .auth-head p{color:var(--gray);font-size:14.5px;margin-top:10px}
+  .plan-ctx{display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px;font-size:13px;color:var(--gray);background:rgba(111,255,194,.06);border:1px solid var(--line);border-radius:100px;padding:9px 15px}
+  .plan-ctx b{color:var(--white);font-weight:800}
+  .plan-ctx .pcd{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint)}
+  .tabs{display:flex;background:rgba(255,255,255,.03);border:1px solid var(--line-2);border-radius:13px;padding:4px;margin:22px 0 20px;gap:4px}
+  .tab{flex:1;text-align:center;padding:11px;border-radius:9px;font-family:var(--display);font-weight:700;font-size:14px;color:var(--gray);cursor:pointer;transition:.2s}
+  .tab.on{background:var(--mint);color:#04130d}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:var(--gray);margin-bottom:7px;font-weight:600}
+  .field input{width:100%;background:#070b09;border:1px solid var(--line-2);border-radius:11px;padding:13px 14px;color:var(--white);font-family:var(--body);font-size:15px;transition:border-color .2s}
+  .field input:focus{outline:none;border-color:var(--mint)}
+  .field input::placeholder{color:#4c5a53}
+  .field.err input{border-color:#ff7a7a}
+  .field .msg{color:#ff9b9b;font-size:12px;margin-top:6px;min-height:0;display:none}
+  .field.err .msg{display:block}
+  .auth form .btn{width:100%;margin-top:4px}
+  .divider{display:flex;align-items:center;gap:12px;color:var(--gray);font-size:12.5px;margin:18px 0}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line-2)}
+  .wa-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:9px}
+  .wa-btn svg{color:#25D366}
+  .auth-foot{text-align:center;color:var(--gray);font-size:13.5px;margin-top:20px}
+  .auth-foot a{color:var(--mint);font-weight:700;cursor:pointer}
+  .auth-terms{text-align:center;color:var(--gray);font-size:11.5px;margin-top:16px;opacity:.75;max-width:360px;margin-inline:auto;line-height:1.5}
+  .auth-head h1{font-family:var(--rounded)}
+  /* split-screen (BetterMe-style): brand panel + form */
+  .app.auth-wide{max-width:920px}
+  .auth-split{display:grid;grid-template-columns:1fr;width:100%}
+  .auth-brand{display:none}
+  .social-row{display:flex;flex-direction:column;gap:10px}
+  .tg-btn svg{color:#2AABEE}
+  @media(min-width:860px){
+    .auth-split{grid-template-columns:1.02fr 1fr;border:1px solid var(--line-2);border-radius:26px;overflow:hidden;margin-top:10px;min-height:560px}
+    .auth-brand{display:flex;flex-direction:column;justify-content:space-between;padding:42px 40px;background:linear-gradient(160deg,#0f1c15,#0a120e);position:relative;overflow:hidden}
+    .auth-brand::after{content:"";position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(111,255,194,.16),transparent 70%);inset-inline-start:-120px;bottom:-140px}
+    .ab-mark{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;letter-spacing:.28em;font-size:15px;position:relative}
+    .ab-tag{font-family:var(--rounded);font-weight:900;font-size:30px;line-height:1.18;letter-spacing:-.01em;position:relative;max-width:340px}
+    .ab-trust{display:flex;flex-direction:column;gap:12px;position:relative}
+    .ab-ti{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--white)}
+    .ab-ti svg{color:var(--mint);flex:0 0 auto}
+    .auth{max-width:400px;margin:0 auto;padding:42px 34px}
+  }
+
+  /* ===== Phase 5: client dashboard shell ===== */
+  .app.dash-mode{max-width:560px}
+  .app.dash-mode .top,.app.dash-mode .brand{display:none}
+  .dash{display:flex;flex-direction:column;min-height:100dvh}
+  .dash-top{padding:24px 0 8px;padding-top:max(24px,env(safe-area-inset-top))}
+  .dash-hi{font-family:var(--display);font-weight:900;font-size:25px;letter-spacing:-.02em}
+  .dash-plan{display:inline-flex;align-items:center;gap:7px;margin-top:9px;font-size:12.5px;font-weight:700;color:var(--mint);background:rgba(111,255,194,.08);border:1px solid var(--line);padding:5px 12px;border-radius:100px}
+  .dash-body{flex:1;padding:14px 0 104px}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px}
+  .stat{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:16px;padding:16px 12px;text-align:center}
+  .stat .sn{font-family:var(--display);font-weight:900;font-size:26px;color:var(--mint);line-height:1}
+  .stat .sl{color:var(--gray);font-size:11px;margin-top:6px;line-height:1.25}
+
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px;font-size:13.5px;color:var(--gray);font-weight:600}
+  .switch{width:44px;height:26px;border-radius:100px;background:rgba(255,255,255,.1);border:1px solid var(--line-2);position:relative;cursor:pointer;transition:.2s;flex:0 0 auto;direction:ltr}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+  .switch.on{background:var(--mint);border-color:var(--mint)}
+  .switch.on::after{transform:translateX(18px);background:#04130d}
+
+  .sess{display:flex;gap:14px;align-items:center;background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:16px;padding:14px 16px;margin-bottom:12px}
+  .sess .sav{width:48px;height:48px;border-radius:14px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:16px;color:#04130d}
+  .sess .st{font-family:var(--display);font-weight:700;font-size:15px}
+  .sess .sd{color:var(--gray);font-size:12.5px;margin-top:2px}
+  .sess .sbtn{margin-inline-start:auto;flex:0 0 auto}
+
+  .empty{text-align:center;padding:36px 22px;border:1px dashed var(--line);border-radius:18px;background:rgba(111,255,194,.03)}
+  .empty .ei{width:56px;height:56px;border-radius:50%;background:rgba(111,255,194,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+  .empty h3{font-family:var(--display);font-weight:800;font-size:17px}
+  .empty p{color:var(--gray);font-size:13.5px;margin:6px 0 18px}
+
+  .dash-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:560px;display:flex;gap:4px;background:rgba(10,10,10,.9);backdrop-filter:blur(14px);border-top:1px solid var(--line-2);padding:10px max(22px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom));z-index:40}
+  .navtab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;color:var(--gray);cursor:pointer;font-size:11px;font-weight:600;transition:.2s;border-radius:10px;background:none;border:none}
+  .navtab.on{color:var(--mint)}
+  .navtab svg{width:22px;height:22px}
+
+  /* booking flow */
+  .book-steps{display:flex;gap:6px;margin-bottom:22px}
+  .book-dot{flex:1;height:4px;border-radius:100px;background:rgba(255,255,255,.1);transition:.3s}
+  .book-dot.on{background:var(--mint)}
+  .book-h{font-family:var(--display);font-weight:900;font-size:22px;letter-spacing:-.02em;margin-bottom:18px}
+  .date-input{width:100%;background:#070b09;border:1px solid var(--line-2);border-radius:11px;padding:13px 14px;color:var(--white);font-family:var(--body);font-size:15px;color-scheme:dark}
+  .date-input:focus{outline:none;border-color:var(--mint)}
+  .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+  .slot{padding:12px;border:1px solid var(--line-2);border-radius:12px;text-align:center;font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums;background:none;color:var(--white);transition:.2s}
+  .slot.on{border-color:var(--mint);background:rgba(111,255,194,.08);color:var(--mint)}
+  .coachpick{display:flex;flex-direction:column;gap:10px}
+  .cpick{display:flex;gap:13px;align-items:center;border:1px solid var(--line-2);border-radius:14px;padding:13px;cursor:pointer;background:linear-gradient(165deg,var(--panel),var(--panel-2));transition:.2s;text-align:start;width:100%;color:var(--white)}
+  .cpick.on{border-color:var(--mint);background:linear-gradient(165deg,rgba(111,255,194,.08),rgba(14,122,95,.04))}
+  .cpick .cav{width:46px;height:46px;border-radius:13px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:15px;color:#04130d}
+  .cpick .cn{font-family:var(--display);font-weight:700;font-size:15px}
+  .cpick .cs{color:var(--gray);font-size:12.5px;margin-top:1px}
+  .confirm{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:2px}
+  .crow{display:flex;justify-content:space-between;gap:12px;padding:10px 0;font-size:14px;border-bottom:1px solid var(--line-2)}
+  .crow:last-child{border-bottom:none}
+  .crow .cl{color:var(--gray)} .crow .cv{font-weight:700}
+  .book-actions{margin-top:20px}
+  .book-actions .btn{width:100%}
+  .book-actions .btn[disabled]{opacity:.4;pointer-events:none}
+
+  /* account */
+  .acct-card{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line-2);border-radius:16px;padding:6px 20px;margin-bottom:14px}
+  .acct-row{display:flex;justify-content:space-between;gap:12px;padding:13px 0;font-size:14px;border-bottom:1px solid var(--line-2)}
+  .acct-row:last-child{border-bottom:none}
+  .acct-row .al{color:var(--gray)} .acct-row .av{font-weight:600;text-align:end;word-break:break-word;unicode-bidi:plaintext}
+  .acct-actions{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+  .acct-actions .btn{width:100%}
+  .btn-danger{background:transparent;color:#ff8f8f;border:1px solid rgba(255,120,120,.3)}
+  .btn-danger:hover{border-color:#ff8f8f}
+  .lang-pills{display:flex;flex-wrap:wrap;gap:8px;padding:14px 0 4px}
+  .lang-pill{padding:8px 13px;border:1px solid var(--line-2);border-radius:100px;cursor:pointer;font-size:13px;font-weight:600;background:none;color:var(--white);transition:.2s;display:flex;align-items:center;gap:7px}
+  .lang-pill.on{border-color:var(--mint);color:var(--mint);background:rgba(111,255,194,.08)}
+
+  /* ===== Phase 5 redesign + global polish: rounded headings & CTAs ===== */
+  .btn,.tab,.navtab,.lang-pill{font-family:var(--rounded)}
+  .dash-hi,.stat .sn,.book-h,.sess .st,.empty h3,.cpick .cn,.confirm .cv,.booked_title{font-family:var(--rounded)}
+  .dash-hi{font-size:26px}
+  .stat .sn{font-size:27px}
+  .dash-plan{font-family:var(--rounded)}
+  .sess .sav,.cpick .cav{font-family:var(--rounded)}
+  /* upcoming/session cards a touch softer + mint-consistent */
+  .sess{border-radius:16px}
+  .navtab.on svg{filter:drop-shadow(0 0 8px rgba(111,255,194,.4))}
+  /* booking date input + slots use rounded numerals */
+  .slot,.date-input{font-family:var(--rounded)}
+
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
+</style>
+</head>
+<body>
+<div class="atmos"><div class="glow a"></div><div class="glow b"></div><div class="grid-tex"></div></div>
+
+<svg width="0" height="0"><defs>
+  <linearGradient id="kg" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="#6FFFC2"/><stop offset="1" stop-color="#0E7A5F"/></linearGradient>
+</defs></svg>
+
+<div class="app">
+  <!-- top bar: back · section name · language -->
+  <div class="top">
+    <button class="iconbtn" id="backBtn" aria-label="Back">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="section-name" id="sectionName"></div>
+    <div class="bar" hidden><div class="bar-fill" id="barFill"></div></div>
+    <div class="step" id="stepLabel" hidden></div>
+    <div class="lang">
+      <button class="lang-btn" id="langBtn"><span id="langFlag">🇬🇧</span><span id="langLabel">EN</span><span class="chev">▼</span></button>
+      <div class="lang-menu" id="langMenu">
+        <div class="lang-item" data-lang="en"><span class="flag">🇬🇧</span> English</div>
+        <div class="lang-item" data-lang="ar"><span class="flag">🇦🇪</span> العربية</div>
+        <div class="lang-item" data-lang="zh"><span class="flag">🇨🇳</span> 中文</div>
+        <div class="lang-item" data-lang="ru"><span class="flag">🇷🇺</span> Русский</div>
+        <div class="lang-item" data-lang="ko"><span class="flag">🇰🇷</span> 한국어</div>
+      </div>
+    </div>
+  </div>
+  <!-- segmented progress (one segment per section) -->
+  <div class="segs" id="segs"></div>
+
+  <!-- stage: questions render here -->
+  <div class="stage" id="stage"></div>
+
+  <div class="foot">
+    <span class="lockrow" id="footNote">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="2"/></svg>
+      <span id="footText">No account needed yet — this takes about 60 seconds.</span>
+    </span>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   KINORA FUNNEL — Phase 1: Onboarding quiz
+   Vanilla JS + Motion. Reuses the marketing site's design
+   system and 5-language i18n pattern. All state is in-memory
+   and shaped as clean JSON, ready to POST to a backend later.
+   ============================================================ */
+
+/* ---------- i18n: shell UI strings ---------- */
+const UI = {
+  en:{label:"EN",flag:"🇬🇧",dir:"ltr",back:"Back",foot:"No account needed yet — this takes about 60 seconds.",loc_search:"Search your city…",loc_none:"No matches — pick “Other”.",cont:"Continue",next:"Next step",choose:"Choose all that apply",analyzing:"Analyzing your answers…"},
+  ar:{label:"AR",flag:"🇦🇪",dir:"rtl",back:"رجوع",foot:"لا حاجة لحساب بعد — يستغرق هذا نحو 60 ثانية.",loc_search:"ابحث عن مدينتك…",loc_none:"لا نتائج — اختر «مكان آخر».",cont:"متابعة",next:"الخطوة التالية",choose:"اختر كل ما ينطبق",analyzing:"نحلّل إجاباتك…"},
+  zh:{label:"ZH",flag:"🇨🇳",dir:"ltr",back:"返回",foot:"暂时无需账号——大约需要 60 秒。",loc_search:"搜索你的城市…",loc_none:"无结果——请选择“其他地区”。",cont:"继续",next:"下一步",choose:"选择所有适用项",analyzing:"正在分析你的答案…"},
+  ru:{label:"RU",flag:"🇷🇺",dir:"ltr",back:"Назад",foot:"Аккаунт пока не нужен — это займёт около 60 секунд.",loc_search:"Найдите свой город…",loc_none:"Ничего не найдено — выберите «Другой».",cont:"Далее",next:"Следующий шаг",choose:"Выберите всё подходящее",analyzing:"Анализируем ваши ответы…"},
+  ko:{label:"KO",flag:"🇰🇷",dir:"ltr",back:"뒤로",foot:"아직 계정이 필요 없어요 — 약 60초면 끝나요.",loc_search:"도시를 검색하세요…",loc_none:"결과 없음 — ‘기타 지역’을 선택하세요.",cont:"계속",next:"다음 단계",choose:"해당하는 항목 모두 선택",analyzing:"답변을 분석하는 중…"}
+};
+
+/* ---------- quiz definition ----------
+   Each question has a stable `id` (the JSON key) and options with
+   stable `val` (the stored value) + translated labels per language. */
+const LANG_NAMES = {en:"English",ar:"العربية",zh:"中文",ru:"Русский",ko:"한국어"};
+const LANG_FLAGS = {en:"🇬🇧",ar:"🇦🇪",zh:"🇨🇳",ru:"🇷🇺",ko:"🇰🇷"};
+
+/* Searchable, international location list (used by the location quiz step).
+   `k` = lowercase Latin keywords so search matches even when the UI is in
+   another language. Add markets here as Kinora expands — the step scales
+   automatically. `other` is the always-available catch-all. */
+const CITIES = [
+  {val:"dubai",      flag:"🇦🇪",k:"dubai uae emirates dxb", l:{en:"Dubai",ar:"دبي",zh:"迪拜",ru:"Дубай",ko:"두바이"}},
+  {val:"abu_dhabi",  flag:"🇦🇪",k:"abu dhabi uae emirates", l:{en:"Abu Dhabi",ar:"أبوظبي",zh:"阿布扎比",ru:"Абу-Даби",ko:"아부다비"}},
+  {val:"sharjah",    flag:"🇦🇪",k:"sharjah uae emirates", l:{en:"Sharjah",ar:"الشارقة",zh:"沙迦",ru:"Шарджа",ko:"샤르자"}},
+  {val:"riyadh",     flag:"🇸🇦",k:"riyadh saudi arabia ksa", l:{en:"Riyadh",ar:"الرياض",zh:"利雅得",ru:"Эр-Рияд",ko:"리야드"}},
+  {val:"jeddah",     flag:"🇸🇦",k:"jeddah saudi arabia ksa", l:{en:"Jeddah",ar:"جدة",zh:"吉达",ru:"Джидда",ko:"제다"}},
+  {val:"doha",       flag:"🇶🇦",k:"doha qatar", l:{en:"Doha",ar:"الدوحة",zh:"多哈",ru:"Доха",ko:"도하"}},
+  {val:"kuwait_city",flag:"🇰🇼",k:"kuwait city", l:{en:"Kuwait City",ar:"مدينة الكويت",zh:"科威特城",ru:"Эль-Кувейт",ko:"쿠웨이트시티"}},
+  {val:"manama",     flag:"🇧🇭",k:"manama bahrain", l:{en:"Manama",ar:"المنامة",zh:"麦纳麦",ru:"Манама",ko:"마나마"}},
+  {val:"muscat",     flag:"🇴🇲",k:"muscat oman", l:{en:"Muscat",ar:"مسقط",zh:"马斯喀特",ru:"Маскат",ko:"무스카트"}},
+  {val:"cairo",      flag:"🇪🇬",k:"cairo egypt", l:{en:"Cairo",ar:"القاهرة",zh:"开罗",ru:"Каир",ko:"카이로"}},
+  {val:"london",     flag:"🇬🇧",k:"london uk england britain", l:{en:"London",ar:"لندن",zh:"伦敦",ru:"Лондон",ko:"런던"}},
+  {val:"new_york",   flag:"🇺🇸",k:"new york nyc usa us america", l:{en:"New York",ar:"نيويورك",zh:"纽约",ru:"Нью-Йорк",ko:"뉴욕"}},
+  {val:"toronto",    flag:"🇨🇦",k:"toronto canada", l:{en:"Toronto",ar:"تورنتو",zh:"多伦多",ru:"Торонто",ko:"토론토"}},
+  {val:"singapore",  flag:"🇸🇬",k:"singapore", l:{en:"Singapore",ar:"سنغافورة",zh:"新加坡",ru:"Сингапур",ko:"싱가포르"}},
+  {val:"shanghai",   flag:"🇨🇳",k:"shanghai china prc", l:{en:"Shanghai",ar:"شنغهاي",zh:"上海",ru:"Шанхай",ko:"상하이"}},
+  {val:"seoul",      flag:"🇰🇷",k:"seoul korea", l:{en:"Seoul",ar:"سيول",zh:"首尔",ru:"Сеул",ko:"서울"}},
+  {val:"moscow",     flag:"🇷🇺",k:"moscow russia", l:{en:"Moscow",ar:"موسكو",zh:"莫斯科",ru:"Москва",ko:"모스크바"}},
+  {val:"istanbul",   flag:"🇹🇷",k:"istanbul turkey turkiye", l:{en:"Istanbul",ar:"إسطنبول",zh:"伊斯坦布尔",ru:"Стамбул",ko:"이스탄불"}},
+  {val:"sydney",     flag:"🇦🇺",k:"sydney australia", l:{en:"Sydney",ar:"سيدني",zh:"悉尼",ru:"Сидней",ko:"시드니"}},
+  {val:"mumbai",     flag:"🇮🇳",k:"mumbai india bombay", l:{en:"Mumbai",ar:"مومباي",zh:"孟买",ru:"Мумбаи",ko:"뭄바이"}},
+  {val:"other",      flag:"🌍",k:"other elsewhere anywhere", l:{en:"Other / elsewhere",ar:"مكان آخر",zh:"其他地区",ru:"Другой город",ko:"기타 지역"}}
+];
+
+/* Quiz sections — drive the segmented progress bar + the centred header name. */
+const SECTIONS = [
+  { id:"profile",   name:{en:"My Profile",ar:"ملفي",zh:"我的资料",ru:"Мой профиль",ko:"내 프로필"} },
+  { id:"activity",  name:{en:"Activity",ar:"النشاط",zh:"活动",ru:"Активность",ko:"활동"} },
+  { id:"lifestyle", name:{en:"Lifestyle",ar:"نمط الحياة",zh:"生活方式",ru:"Образ жизни",ko:"라이프스타일"} },
+  { id:"goals",     name:{en:"Your Goal",ar:"هدفك",zh:"你的目标",ru:"Ваша цель",ko:"목표"} }
+];
+
+/* STEPS = the whole ordered funnel: question steps (have an `id`), plus
+   `inter` social-proof / trust screens and a `loader` — BetterMe-style.
+   type: "single" | "multi" | "search" | "number" | "inter" | "loader" */
+const STEPS = [
+  /* ---- Section 1 · My Profile ---- */
+  { section:"profile", type:"single", id:"goal",
+    t:{en:"What's your primary goal?",ar:"ما هو هدفك الأساسي؟",zh:"你的主要目标是什么？",ru:"Какая у вас главная цель?",ko:"주요 목표가 무엇인가요?"},
+    s:{en:"We'll match you with a coach who specializes in it.",ar:"سنطابقك مع مدرب متخصص في هدفك.",zh:"我们会为你匹配擅长该目标的教练。",ru:"Подберём тренера под вашу цель.",ko:"목표에 맞는 코치를 매칭해 드려요."},
+    o:[
+      {val:"lose_weight",l:{en:"Lose weight",ar:"خسارة الوزن",zh:"减重",ru:"Похудеть",ko:"체중 감량"}},
+      {val:"build_muscle",l:{en:"Build muscle",ar:"بناء العضلات",zh:"增肌",ru:"Набрать мышечную массу",ko:"근육 키우기"}},
+      {val:"mobility",l:{en:"Mobility & flexibility",ar:"المرونة والحركة",zh:"灵活性与柔韧",ru:"Подвижность и гибкость",ko:"유연성·가동성"}},
+      {val:"sport",l:{en:"Sport-specific",ar:"رياضة محددة",zh:"专项运动",ru:"Подготовка к спорту",ko:"특정 스포츠"}},
+      {val:"accountability",l:{en:"General accountability",ar:"الالتزام والمتابعة",zh:"坚持与监督",ru:"Дисциплина и поддержка",ko:"꾸준함·동기 부여"}}
+    ]},
+  { section:"profile", type:"single", id:"experience",
+    t:{en:"Your experience with live/video coaching?",ar:"ما خبرتك مع التدريب المباشر عبر الفيديو؟",zh:"你对实时视频教练的经验如何？",ru:"Ваш опыт онлайн-тренировок по видео?",ko:"실시간 영상 코칭 경험이 있나요?"},
+    s:{en:"No worries either way — we'll guide you.",ar:"لا تقلق مهما كانت إجابتك — سنرشدك.",zh:"无论如何都别担心——我们会全程指导你。",ru:"Не волнуйтесь — мы поможем на каждом шаге.",ko:"걱정 마세요 — 처음부터 함께할게요."},
+    o:[
+      {val:"never",l:{en:"Never tried it",ar:"لم أجرّبه من قبل",zh:"从未尝试",ru:"Никогда не пробовал(а)",ko:"해본 적 없어요"}},
+      {val:"apps",l:{en:"Tried similar apps",ar:"جرّبت تطبيقات مشابهة",zh:"用过类似应用",ru:"Пробовал(а) похожие приложения",ko:"비슷한 앱을 써봤어요"}},
+      {val:"inperson",l:{en:"Experienced with in-person PT",ar:"لديّ خبرة مع مدرب شخصي حضورياً",zh:"有线下私教经验",ru:"Есть опыт с личным тренером",ko:"오프라인 PT 경험이 있어요"}}
+    ]},
+  { section:"profile", type:"number", id:"age", min:14, max:99,
+    t:{en:"What's your age?",ar:"كم عمرك؟",zh:"你的年龄？",ru:"Сколько вам лет?",ko:"나이가 어떻게 되나요?"},
+    unit:{en:"years",ar:"سنة",zh:"岁",ru:"лет",ko:"세"},
+    info:{en:"We use your age to tailor session intensity and pacing.",ar:"نستخدم عمرك لتخصيص شدّة الجلسات وإيقاعها.",zh:"我们用年龄来调整课程强度与节奏。",ru:"Возраст помогает подобрать интенсивность и темп.",ko:"나이로 세션 강도와 페이스를 맞춰요."} },
+  { section:"profile", type:"inter",
+    title:{en:"Coaching that adapts to you — live",ar:"تدريب يتكيّف معك — مباشرةً",zh:"实时因你而变的教练",ru:"Тренировки, что подстраиваются под вас — вживую",ko:"실시간으로 당신에 맞춰지는 코칭"},
+    big:"5,000+",
+    bigSub:{en:"live sessions delivered across the UAE",ar:"جلسة مباشرة تم تقديمها في الإمارات",zh:"已在阿联酋完成的实时课程",ru:"живых сессий проведено в ОАЭ",ko:"UAE에서 진행된 실시간 세션"},
+    review:{name:"Omar K.", text:{en:"My coach adapts every session in real time — it feels like a real PT, from home.",ar:"مدربي يعدّل كل جلسة لحظياً — يشعرك وكأنه مدرب شخصي حقيقي من المنزل.",zh:"教练实时调整每节课——就像在家里的私教。",ru:"Тренер подстраивает каждую сессию в реальном времени — как личный тренер, но дома.",ko:"코치가 매 세션을 실시간으로 조정해요 — 집에서 받는 진짜 PT 같아요."}} },
+
+  /* ---- Section 2 · Activity ---- */
+  { section:"activity", type:"single", id:"activity",
+    t:{en:"How active are you right now?",ar:"ما مستوى نشاطك حالياً؟",zh:"你目前的运动水平如何？",ru:"Насколько вы сейчас активны?",ko:"현재 활동량은 어느 정도인가요?"},
+    s:{en:"This helps us tune your session intensity.",ar:"هذا يساعدنا في ضبط شدة التمارين.",zh:"这有助于我们调整训练强度。",ru:"Это поможет настроить нагрузку.",ko:"운동 강도를 조절하는 데 도움이 돼요."},
+    o:[
+      {val:"sedentary",l:{en:"Sedentary",ar:"قليل الحركة",zh:"久坐少动",ru:"Малоподвижный",ko:"거의 앉아서 생활"}},
+      {val:"light",l:{en:"Lightly active",ar:"نشاط خفيف",zh:"轻度活跃",ru:"Лёгкая активность",ko:"가벼운 활동"}},
+      {val:"active",l:{en:"Active",ar:"نشِط",zh:"活跃",ru:"Активный",ko:"활동적"}},
+      {val:"athlete",l:{en:"Athlete",ar:"رياضي محترف",zh:"运动员水平",ru:"Спортсмен",ko:"운동선수 수준"}}
+    ]},
+  { section:"activity", type:"single", id:"time",
+    t:{en:"When do you prefer to train?",ar:"متى تفضّل التدريب؟",zh:"你更喜欢什么时候训练？",ru:"Когда вам удобно тренироваться?",ko:"언제 운동하는 걸 선호하나요?"},
+    s:{en:"We'll match a coach who's free at your time.",ar:"سنطابقك مع مدرب متاح في وقتك.",zh:"我们会匹配在你时间有空的教练。",ru:"Подберём тренера на ваше время.",ko:"가능한 시간에 맞춰 코치를 매칭해요."},
+    o:[
+      {val:"morning",l:{en:"Morning",ar:"صباحاً",zh:"早晨",ru:"Утро",ko:"아침"}},
+      {val:"afternoon",l:{en:"Afternoon",ar:"بعد الظهر",zh:"下午",ru:"День",ko:"오후"}},
+      {val:"evening",l:{en:"Evening",ar:"مساءً",zh:"晚上",ru:"Вечер",ko:"저녁"}},
+      {val:"flexible",l:{en:"Flexible",ar:"مرن",zh:"灵活",ru:"Гибко",ko:"유연하게"}}
+    ]},
+  { section:"activity", type:"single", id:"frequency",
+    t:{en:"How many live sessions a week?",ar:"كم جلسة مباشرة في الأسبوع؟",zh:"每周想要几次实时课程？",ru:"Сколько живых сессий в неделю?",ko:"주당 실시간 세션 몇 회를 원하세요?"},
+    s:{en:"We'll build your plan around this.",ar:"سنبني خطتك على هذا الأساس.",zh:"我们会据此制定你的计划。",ru:"На этом построим ваш план.",ko:"이걸 바탕으로 플랜을 만들어요."},
+    o:[
+      {val:"1_2",l:{en:"1–2 sessions",ar:"جلسة إلى جلستين",zh:"1–2 次",ru:"1–2 сессии",ko:"1–2회"}},
+      {val:"3_4",l:{en:"3–4 sessions",ar:"3–4 جلسات",zh:"3–4 次",ru:"3–4 сессии",ko:"3–4회"}},
+      {val:"5plus",l:{en:"5+ sessions",ar:"5 جلسات فأكثر",zh:"5 次以上",ru:"5+ сессий",ko:"5회 이상"}}
+    ]},
+  { section:"activity", type:"single", id:"style",
+    t:{en:"What coaching style motivates you?",ar:"أي أسلوب تدريب يحفّزك؟",zh:"哪种教练风格更能激励你？",ru:"Какой стиль тренера вас мотивирует?",ko:"어떤 코칭 스타일이 동기를 주나요?"},
+    s:{en:"Every Kinora coach has a signature style.",ar:"لكل مدرب في كينورا أسلوبه الخاص.",zh:"每位 Kinora 教练都有独特风格。",ru:"У каждого тренера свой стиль.",ko:"코치마다 스타일이 달라요."},
+    o:[
+      {val:"motivational",l:{en:"Motivational & high-energy",ar:"تحفيزي وحماسي",zh:"激励型 · 高能量",ru:"Энергичный и мотивирующий",ko:"열정적·에너지 넘치는"}},
+      {val:"calm",l:{en:"Calm & technical",ar:"هادئ وتقني",zh:"沉稳型 · 重技术",ru:"Спокойный и технический",ko:"차분하고 기술적인"}},
+      {val:"structured",l:{en:"Structured & data-driven",ar:"منظّم ومعتمد على البيانات",zh:"结构化 · 数据驱动",ru:"Структурный, на основе данных",ko:"체계적·데이터 기반"}}
+    ]},
+  { section:"activity", type:"inter", kind:"why",
+    title:{en:"Why live video works",ar:"لماذا ينجح الفيديو المباشر",zh:"为什么实时视频有效",ru:"Почему видео вживую работает",ko:"실시간 영상이 효과적인 이유"} },
+
+  /* ---- Section 3 · Lifestyle ---- */
+  { section:"lifestyle", type:"multi", id:"target",
+    t:{en:"What do you want to focus on?",ar:"على ماذا تريد التركيز؟",zh:"你想重点锻炼哪里？",ru:"На чём хотите сосредоточиться?",ko:"어디에 집중하고 싶나요?"},
+    o:[
+      {val:"full_body",l:{en:"Full body",ar:"الجسم كامل",zh:"全身",ru:"Всё тело",ko:"전신"}},
+      {val:"core",l:{en:"Core & abs",ar:"الجذع والبطن",zh:"核心与腹部",ru:"Кор и пресс",ko:"코어·복부"}},
+      {val:"upper",l:{en:"Upper body",ar:"الجزء العلوي",zh:"上半身",ru:"Верх тела",ko:"상체"}},
+      {val:"lower",l:{en:"Lower body",ar:"الجزء السفلي",zh:"下半身",ru:"Низ тела",ko:"하체"}},
+      {val:"mobility",l:{en:"Mobility",ar:"المرونة",zh:"灵活性",ru:"Мобильность",ko:"가동성"}},
+      {val:"cardio",l:{en:"Cardio & endurance",ar:"الكارديو والتحمل",zh:"有氧与耐力",ru:"Кардио и выносливость",ko:"유산소·지구력"}}
+    ]},
+  { section:"lifestyle", type:"multi", id:"motivation",
+    t:{en:"What's driving you?",ar:"ما الذي يحفّزك؟",zh:"是什么在驱动你？",ru:"Что вас мотивирует?",ko:"무엇이 동기가 되나요?"},
+    o:[
+      {val:"confidence",l:{en:"Feel more confident",ar:"الشعور بثقة أكبر",zh:"更自信",ru:"Больше уверенности",ko:"자신감 향상"}},
+      {val:"health",l:{en:"Improve my health",ar:"تحسين صحتي",zh:"改善健康",ru:"Улучшить здоровье",ko:"건강 개선"}},
+      {val:"energy",l:{en:"More energy",ar:"طاقة أكبر",zh:"更有活力",ru:"Больше энергии",ko:"활력 증가"}},
+      {val:"strength",l:{en:"Get stronger",ar:"أصبح أقوى",zh:"变得更强",ru:"Стать сильнее",ko:"더 강해지기"}},
+      {val:"stress",l:{en:"Reduce stress",ar:"تقليل التوتر",zh:"缓解压力",ru:"Меньше стресса",ko:"스트레스 감소"}},
+      {val:"routine",l:{en:"Stay accountable",ar:"الالتزام والمتابعة",zh:"保持自律",ru:"Дисциплина",ko:"꾸준함 유지"}}
+    ]},
+
+  /* ---- Section 4 · Your Goal ---- */
+  { section:"goals", type:"search", id:"location",
+    t:{en:"Where are you based?",ar:"أين تقيم؟",zh:"你在哪个城市？",ru:"Где вы находитесь?",ko:"어느 지역에 계신가요?"},
+    s:{en:"We'll match you with a coach in a compatible time zone.",ar:"سنطابقك مع مدرب في منطقة زمنية مناسبة.",zh:"我们会为你匹配时区相近的教练。",ru:"Подберём тренера в удобном для вас часовом поясе.",ko:"시간대가 잘 맞는 코치를 매칭해 드려요."},
+    o: CITIES },
+  { section:"goals", type:"single", id:"language",
+    t:{en:"Preferred coaching language?",ar:"بأي لغة تفضّل التدريب؟",zh:"你希望用哪种语言训练？",ru:"На каком языке хотите заниматься?",ko:"어떤 언어로 코칭받고 싶으세요?"},
+    s:{en:"We'll match a coach who speaks it fluently.",ar:"سنطابقك مع مدرب يتحدث لغتك بطلاقة.",zh:"我们会匹配流利使用该语言的教练。",ru:"Подберём тренера, свободно говорящего на нём.",ko:"해당 언어를 유창하게 하는 코치를 매칭해요."},
+    o:[
+      {val:"en",flag:LANG_FLAGS.en,l:{en:LANG_NAMES.en,ar:LANG_NAMES.en,zh:LANG_NAMES.en,ru:LANG_NAMES.en,ko:LANG_NAMES.en}},
+      {val:"ar",flag:LANG_FLAGS.ar,l:{en:LANG_NAMES.ar,ar:LANG_NAMES.ar,zh:LANG_NAMES.ar,ru:LANG_NAMES.ar,ko:LANG_NAMES.ar}},
+      {val:"zh",flag:LANG_FLAGS.zh,l:{en:LANG_NAMES.zh,ar:LANG_NAMES.zh,zh:LANG_NAMES.zh,ru:LANG_NAMES.zh,ko:LANG_NAMES.zh}},
+      {val:"ru",flag:LANG_FLAGS.ru,l:{en:LANG_NAMES.ru,ar:LANG_NAMES.ru,zh:LANG_NAMES.ru,ru:LANG_NAMES.ru,ko:LANG_NAMES.ru}},
+      {val:"ko",flag:LANG_FLAGS.ko,l:{en:LANG_NAMES.ko,ar:LANG_NAMES.ko,zh:LANG_NAMES.ko,ru:LANG_NAMES.ko,ko:LANG_NAMES.ko}}
+    ]},
+  { section:"goals", type:"loader" }
+];
+// question steps only (have an id) — used for lookups + progress counting
+const QUESTIONS = STEPS.filter(s => s.id);
+
+/* ============================================================
+   PHASE 2 data — persona archetypes + copy, all 5 languages.
+   The match is a *profile type*, never a fake specific human.
+   ============================================================ */
+const PERSONAS = {
+  lose_weight:  {initials:"FC",grad:"linear-gradient(135deg,#6FFFC2,#0E7A5F)",n:{en:"Fat-Loss & Conditioning Coach",ar:"مدرب خسارة الوزن واللياقة",zh:"减脂与体能教练",ru:"Тренер по снижению веса и ОФП",ko:"체지방 감량·컨디셔닝 코치"}},
+  build_muscle: {initials:"SC",grad:"linear-gradient(135deg,#1faa7e,#6FFFC2)",n:{en:"Strength & Hypertrophy Coach",ar:"مدرب القوة وبناء العضلات",zh:"力量与增肌教练",ru:"Тренер по силе и гипертрофии",ko:"근력·근비대 코치"}},
+  mobility:     {initials:"MC",grad:"linear-gradient(135deg,#8affd4,#0E7A5F)",n:{en:"Mobility & Movement Coach",ar:"مدرب المرونة والحركة",zh:"灵活性与动作教练",ru:"Тренер по мобильности и движению",ko:"가동성·움직임 코치"}},
+  sport:        {initials:"PC",grad:"linear-gradient(135deg,#0E7A5F,#6FFFC2)",n:{en:"Performance & Sport Coach",ar:"مدرب الأداء والرياضة",zh:"运动表现教练",ru:"Тренер по спорту и результату",ko:"퍼포먼스·스포츠 코치"}},
+  accountability:{initials:"HC",grad:"linear-gradient(135deg,#6FFFC2,#1faa7e)",n:{en:"Habit & Accountability Coach",ar:"مدرب العادات والالتزام",zh:"习惯与自律教练",ru:"Тренер по привычкам и дисциплине",ko:"습관·동기부여 코치"}}
+};
+const STYLES = {
+  motivational:{en:"Motivational & high-energy",ar:"تحفيزي وحماسي",zh:"激励 · 高能量",ru:"Мотивирующий, энергичный",ko:"열정적·에너지 넘치는"},
+  calm:        {en:"Calm & technical",ar:"هادئ وتقني",zh:"沉稳 · 重技术",ru:"Спокойный, технический",ko:"차분·기술 중심"},
+  structured:  {en:"Structured & data-driven",ar:"منظّم ومعتمد على البيانات",zh:"结构化 · 数据驱动",ru:"Структурный, на данных",ko:"체계적·데이터 기반"}
+};
+const SESSION = {
+  min:{en:"min",ar:"دقيقة",zh:"分钟",ru:"мин",ko:"분"},
+  warmup:  {en:"Warm-up & mobility prime",ar:"إحماء وتهيئة الحركة",zh:"热身与灵活性激活",ru:"Разминка и мобилизация",ko:"워밍업·가동성 준비"},
+  finisher:{en:"Conditioning finisher",ar:"ختام لياقة",zh:"体能收尾",ru:"Финишер на выносливость",ko:"컨디셔닝 피니셔"},
+  cooldown:{en:"Cooldown & check-in",ar:"تهدئة ومراجعة",zh:"放松与回顾",ru:"Заминка и разбор",ko:"쿨다운·점검"},
+  main:{
+    lose_weight:  {en:"Fat-burning circuits",ar:"دوائر حرق الدهون",zh:"燃脂循环训练",ru:"Жиросжигающие круги",ko:"지방 연소 서킷"},
+    build_muscle: {en:"Progressive strength sets",ar:"مجموعات قوة تدريجية",zh:"渐进力量组",ru:"Прогрессивные силовые подходы",ko:"점진적 근력 세트"},
+    mobility:     {en:"Mobility & flexibility flow",ar:"تدفّق المرونة والحركة",zh:"灵活性与柔韧流程",ru:"Поток мобильности и гибкости",ko:"가동성·유연성 플로우"},
+    sport:        {en:"Sport-specific drills",ar:"تمارين رياضية متخصصة",zh:"专项运动训练",ru:"Спортивные упражнения",ko:"스포츠 특화 드릴"},
+    accountability:{en:"Full-body foundations",ar:"أساسيات الجسم الكامل",zh:"全身基础训练",ru:"Базовая работа на всё тело",ko:"전신 기초 운동"}
+  }
+};
+const WHY = [
+  {ic:'<path d="M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6z" stroke="#6FFFC2" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="#6FFFC2" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+   t:{en:"Verified coaches",ar:"مدربون موثّقون",zh:"认证教练",ru:"Проверенные тренеры",ko:"인증된 코치"},
+   d:{en:"Every coach is ID- and certification-checked.",ar:"كل مدرب مُتحقق من هويته وشهاداته.",zh:"每位教练均经身份与资质核验。",ru:"Каждый тренер проверен: ID и сертификаты.",ko:"모든 코치는 신원·자격이 확인돼요."}},
+  {ic:'<path d="M4 17l5-5 3 3 8-9" stroke="#6FFFC2" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 6h4v4" stroke="#6FFFC2" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+   t:{en:"Native session tracking",ar:"تتبّع الجلسات داخل التطبيق",zh:"应用内课程追踪",ru:"Отслеживание тренировок",ko:"앱 내 세션 기록"},
+   d:{en:"Reps, goals and progress logged right in the app.",ar:"العدّات والأهداف والتقدّم مسجّلة داخل التطبيق.",zh:"次数、目标与进度均记录在应用内。",ru:"Повторы, цели и прогресс — прямо в приложении.",ko:"횟수·목표·진행 상황이 앱에 기록돼요."}},
+  {ic:'<circle cx="12" cy="12" r="9" stroke="#6FFFC2" stroke-width="1.7"/><path d="M12 7v5l3 2" stroke="#6FFFC2" stroke-width="1.7" stroke-linecap="round"/>',
+   t:{en:"Progress check-ins",ar:"مراجعات التقدّم",zh:"进度回访",ru:"Проверки прогресса",ko:"진행 점검"},
+   d:{en:"Your coach reviews and adjusts between sessions.",ar:"مدربك يراجع ويعدّل بين الجلسات.",zh:"教练在课程之间进行回顾与调整。",ru:"Тренер анализирует и корректирует между сессиями.",ko:"코치가 세션 사이에 검토하고 조정해요."}}
+];
+const FREQ = {sedentary:2,light:3,active:3,athlete:4};
+const FREQ_DOTS = {2:[1,4],3:[1,3,5],4:[0,2,4,6]};
+
+/* results-screen UI strings */
+const RES = {
+  en:{eyebrow:"Your match",title:"Meet your ideal coach",title2:"Here's your coaching profile",ready:"Your starting point",b_beg:"Beginner",b_int:"Intermediate",b_adv:"Advanced",call_beg:"Perfect place to start — your coach will build the fundamentals with you, live.",call_int:"Great base to build on — your coach will push you with tailored live sessions.",call_adv:"Strong starting point — your coach will fine-tune performance every live session.",l_goal:"Goal",l_level:"Starting level",l_focus:"Focus",sub:"Based on your answers, here's the Kinora coach profile we'd match you with.",profile:"Matched on your answers",badge:"Recommended profile",style:"Style",speaks:"Speaks",avail:"Availability",city:"Based in",session:"Your sample 45-min session",plan:"Your recommended weekly plan",unit:"× 45-min live sessions / week",pnote:"Adjustable anytime with your coach.",why:"Why live video works",cta:"See your plan & pricing",guarantee:"First-session satisfaction guarantee — rebook free if it's not the right match."},
+  ar:{eyebrow:"مطابقتك",title:"تعرّف على مدربك المثالي",title2:"هذا هو ملفك التدريبي",ready:"نقطة انطلاقك",b_beg:"مبتدئ",b_int:"متوسط",b_adv:"متقدّم",call_beg:"مكان مثالي للبدء — سيبني مدربك الأساسيات معك مباشرةً.",call_int:"قاعدة رائعة للبناء عليها — سيدفعك مدربك بجلسات مباشرة مخصّصة.",call_adv:"نقطة انطلاق قوية — سيحسّن مدربك أداءك في كل جلسة مباشرة.",l_goal:"الهدف",l_level:"مستوى البداية",l_focus:"التركيز",sub:"بناءً على إجاباتك، هذا هو ملف مدرب كينورا الذي سنطابقك معه.",profile:"مطابقة حسب إجاباتك",badge:"الملف الموصى به",style:"الأسلوب",speaks:"يتحدث",avail:"التوفّر",city:"المقر",session:"جلستك النموذجية (45 دقيقة)",plan:"خطتك الأسبوعية الموصى بها",unit:"× جلسة مباشرة (45 دقيقة) / أسبوع",pnote:"قابلة للتعديل في أي وقت مع مدربك.",why:"لماذا ينجح الفيديو المباشر",cta:"اطّلع على خطتك والأسعار",guarantee:"ضمان الرضا عن الجلسة الأولى — أعد الحجز مجاناً إن لم تكن المطابقة مناسبة."},
+  zh:{eyebrow:"你的匹配",title:"认识你的理想教练",title2:"这是你的教练画像",ready:"你的起点",b_beg:"初级",b_int:"中级",b_adv:"高级",call_beg:"绝佳的起点——教练将实时带你打好基础。",call_int:"很好的基础——教练将通过定制实时课程推动你进步。",call_adv:"强劲的起点——教练将在每节实时课程中精进你的表现。",l_goal:"目标",l_level:"起始水平",l_focus:"重点",sub:"根据你的回答，这是我们为你匹配的 Kinora 教练画像。",profile:"依据你的回答匹配",badge:"推荐画像",style:"风格",speaks:"语言",avail:"可预约时间",city:"所在城市",session:"你的 45 分钟示范课程",plan:"推荐的每周计划",unit:"× 45 分钟实时课程 / 周",pnote:"可随时与教练调整。",why:"为什么实时视频有效",cta:"查看你的方案与价格",guarantee:"首节课满意保证——匹配不合适可免费改约。"},
+  ru:{eyebrow:"Ваш подбор",title:"Ваш идеальный тренер",title2:"Ваш тренировочный профиль",ready:"Ваша отправная точка",b_beg:"Начальный",b_int:"Средний",b_adv:"Продвинутый",call_beg:"Отличная точка старта — тренер выстроит основы вместе с вами вживую.",call_int:"Хорошая база — тренер будет вести вас персональными живыми сессиями.",call_adv:"Сильный старт — тренер отточит результат на каждой живой сессии.",l_goal:"Цель",l_level:"Начальный уровень",l_focus:"Фокус",sub:"На основе ваших ответов — профиль тренера Kinora, которого мы подберём.",profile:"Подобрано по вашим ответам",badge:"Рекомендуемый профиль",style:"Стиль",speaks:"Язык",avail:"Доступность",city:"Город",session:"Пример 45-минутной сессии",plan:"Рекомендуемый недельный план",unit:"× живых сессий по 45 мин / неделю",pnote:"Можно изменить в любой момент с тренером.",why:"Почему видео вживую работает",cta:"Посмотреть план и цены",guarantee:"Гарантия на первую сессию — бесплатная перезапись, если тренер не подошёл."},
+  ko:{eyebrow:"내 매칭",title:"이상적인 코치를 만나보세요",title2:"당신의 코칭 프로필이에요",ready:"시작 지점",b_beg:"초급",b_int:"중급",b_adv:"고급",call_beg:"시작하기 딱 좋아요 — 코치가 실시간으로 기초부터 함께 만들어요.",call_int:"좋은 기반이에요 — 코치가 맞춤 실시간 세션으로 이끌어요.",call_adv:"탄탄한 출발점이에요 — 코치가 매 실시간 세션에서 퍼포먼스를 다듬어요.",l_goal:"목표",l_level:"시작 레벨",l_focus:"집중",sub:"답변을 바탕으로 매칭해 드릴 Kinora 코치 프로필이에요.",profile:"답변 기반 매칭",badge:"추천 프로필",style:"스타일",speaks:"언어",avail:"가능 시간",city:"지역",session:"45분 샘플 세션",plan:"추천 주간 플랜",unit:"× 45분 실시간 세션 / 주",pnote:"코치와 언제든 조정할 수 있어요.",why:"실시간 영상이 효과적인 이유",cta:"플랜·요금 보기",guarantee:"첫 세션 만족 보장 — 매칭이 맞지 않으면 무료로 다시 예약해요."}
+};
+
+/* ============================================================
+   PHASE 3 data — pricing tiers (AED placeholders — adjustable),
+   comparison rows, and paywall copy in all 5 languages.
+   ============================================================ */
+const TIERS = [
+  { id:"payg", price:"149", unit:"per_session", pop:false,
+    name:{en:"Pay-per-session",ar:"الدفع لكل جلسة",zh:"按次付费",ru:"Оплата за сессию",ko:"세션별 결제"},
+    desc:{en:"No commitment. Book single live sessions whenever you want.",ar:"بدون التزام. احجز جلسات مباشرة مفردة متى شئت.",zh:"无需承诺。随时预约单次实时课程。",ru:"Без обязательств. Разовые живые сессии когда угодно.",ko:"약정 없이 원할 때 단일 실시간 세션을 예약하세요."},
+    feats:[
+      {en:"Book any verified coach",ar:"احجز أي مدرب موثّق",zh:"预约任意认证教练",ru:"Любой проверенный тренер",ko:"인증 코치 자유 예약"},
+      {en:"45-min live video sessions",ar:"جلسات فيديو مباشرة 45 دقيقة",zh:"45 分钟实时视频课程",ru:"Живые видеосессии 45 мин",ko:"45분 실시간 영상 세션"},
+      {en:"In-app chat & rescheduling",ar:"محادثة وإعادة جدولة داخل التطبيق",zh:"应用内聊天与改期",ru:"Чат и перенос в приложении",ko:"앱 내 채팅·일정 변경"},
+      {en:"Pay only for what you book",ar:"ادفع فقط لما تحجزه",zh:"仅为所约课程付费",ru:"Платите только за забронированное",ko:"예약한 만큼만 결제"}
+    ]},
+  { id:"member", price:"449", unit:"per_month", pop:true,
+    name:{en:"Member",ar:"عضو",zh:"会员",ru:"Участник",ko:"멤버"},
+    desc:{en:"4 live sessions a month, priority booking, and progress tracking.",ar:"4 جلسات مباشرة شهرياً، حجز بأولوية، وتتبّع للتقدّم.",zh:"每月 4 次实时课程，优先预约与进度追踪。",ru:"4 живые сессии в месяц, приоритет и отслеживание прогресса.",ko:"매월 4회 실시간 세션, 우선 예약, 진행 추적."},
+    feats:[
+      {en:"4 live sessions / month included",ar:"4 جلسات مباشرة شهرياً",zh:"每月含 4 次实时课程",ru:"4 живые сессии в месяц включены",ko:"매월 4회 실시간 세션 포함"},
+      {en:"Priority booking",ar:"حجز بأولوية",zh:"优先预约",ru:"Приоритетная запись",ko:"우선 예약"},
+      {en:"In-app progress tracking",ar:"تتبّع التقدّم داخل التطبيق",zh:"应用内进度追踪",ru:"Отслеживание прогресса",ko:"앱 내 진행 추적"},
+      {en:"Cancel anytime",ar:"ألغِ في أي وقت",zh:"随时取消",ru:"Отмена в любой момент",ko:"언제든 해지"}
+    ]},
+  { id:"elite", price:"899", unit:"per_month", pop:false,
+    name:{en:"Elite",ar:"النخبة",zh:"精英",ru:"Элита",ko:"엘리트"},
+    desc:{en:"8 live sessions a month with a dedicated coach and monthly reviews.",ar:"8 جلسات مباشرة شهرياً مع مدرب مخصّص ومراجعات شهرية.",zh:"每月 8 次实时课程，专属教练与每月复盘。",ru:"8 живых сессий в месяц с личным тренером и ежемесячным разбором.",ko:"매월 8회 실시간 세션, 전담 코치와 월간 리뷰."},
+    feats:[
+      {en:"8 live sessions / month included",ar:"8 جلسات مباشرة شهرياً",zh:"每月含 8 次实时课程",ru:"8 живых сессий в месяц включены",ko:"매월 8회 실시간 세션 포함"},
+      {en:"Dedicated coach match",ar:"مطابقة مدرب مخصّص",zh:"专属教练匹配",ru:"Персональный подбор тренера",ko:"전담 코치 매칭"},
+      {en:"Priority scheduling",ar:"جدولة بأولوية",zh:"优先排期",ru:"Приоритетное расписание",ko:"우선 일정 예약"},
+      {en:"Monthly progress review",ar:"مراجعة تقدّم شهرية",zh:"每月进度复盘",ru:"Ежемесячный разбор прогресса",ko:"월간 진행 리뷰"},
+      {en:"Everything in Member",ar:"كل مزايا العضو",zh:"包含会员全部权益",ru:"Всё из «Участник»",ko:"멤버 혜택 전부 포함"}
+    ]}
+];
+
+const _45 = {en:"45 min",ar:"45 دقيقة",zh:"45 分钟",ru:"45 мин",ko:"45분"};
+const COMPARE = [
+  { l:{en:"Live sessions",ar:"جلسات مباشرة",zh:"实时课程",ru:"Живые сессии",ko:"실시간 세션"},
+    c:[ {en:"Pay per session",ar:"لكل جلسة",zh:"按次",ru:"За сессию",ko:"세션별"},
+        {en:"4 / month",ar:"4 / شهر",zh:"4 / 月",ru:"4 / мес",ko:"4 / 월"},
+        {en:"8 / month",ar:"8 / شهر",zh:"8 / 月",ru:"8 / мес",ko:"8 / 월"} ]},
+  { l:{en:"Session length",ar:"مدة الجلسة",zh:"课程时长",ru:"Длительность",ko:"세션 길이"}, c:[_45,_45,_45] },
+  { l:{en:"Booking priority",ar:"أولوية الحجز",zh:"预约优先级",ru:"Приоритет записи",ko:"예약 우선순위"},
+    c:[ {en:"Standard",ar:"عادي",zh:"标准",ru:"Обычный",ko:"일반"},
+        {en:"Priority",ar:"أولوية",zh:"优先",ru:"Приоритет",ko:"우선"},
+        {en:"Priority+",ar:"أولوية+",zh:"优先+",ru:"Приоритет+",ko:"우선+"} ]},
+  { l:{en:"Progress tracking",ar:"تتبّع التقدّم",zh:"进度追踪",ru:"Отслеживание прогресса",ko:"진행 추적"},
+    c:[ {y:false}, {y:true},
+        {en:"+ monthly review",ar:"+ مراجعة شهرية",zh:"+ 每月复盘",ru:"+ ежемес. разбор",ko:"+ 월간 리뷰"} ]},
+  { l:{en:"Dedicated coach match",ar:"مدرب مخصّص",zh:"专属教练匹配",ru:"Личный тренер",ko:"전담 코치"}, c:[ {y:false},{y:false},{y:true} ] },
+  { l:{en:"Cancel anytime",ar:"الإلغاء في أي وقت",zh:"随时取消",ru:"Отмена в любой момент",ko:"언제든 해지"}, c:[ {y:true},{y:true},{y:true} ] }
+];
+
+const PAY = {
+  en:{eyebrow:"Membership",title:"Choose your plan",sub:"Simple, flexible pricing — cancel anytime.",note:"Prices are placeholder AED and easy to adjust.",per_session:"/ 45-min session",per_month:"/ month",popular:"Most popular",choose:"Choose plan",compare:"Compare plans",feature:"Feature",t_cancel:"Cancel anytime",t_guarantee:"First-session guarantee",t_secure:"Secure in-app payments",reserved:"Reserved price for:",mins:"minutes",secs:"seconds",getplan:"Get my plan",ptitle:"Get your Kinora plan",now:"Now",goal:"Your goal",promo:"Your promo code is applied!",renew:"Cancel anytime. Otherwise your plan renews automatically until you cancel.",save:"Save 20%",secure:"Secure checkout",pay_method:"Payment method",pm_card:"Card",pm_note:"Powered by Stripe · Secure checkout"},
+  ar:{eyebrow:"العضوية",title:"اختر خطتك",sub:"أسعار بسيطة ومرنة — ألغِ في أي وقت.",note:"الأسعار بالدرهم الإماراتي كقيَم مبدئية وقابلة للتعديل بسهولة.",per_session:"/ جلسة 45 دقيقة",per_month:"/ شهر",popular:"الأكثر شيوعاً",choose:"اختر الباقة",compare:"قارن الباقات",feature:"الميزة",t_cancel:"ألغِ في أي وقت",t_guarantee:"ضمان الجلسة الأولى",t_secure:"مدفوعات آمنة داخل التطبيق",reserved:"السعر المحجوز لمدة:",mins:"دقائق",secs:"ثوانٍ",getplan:"احصل على خطتي",ptitle:"احصل على خطة كينورا",now:"الآن",goal:"هدفك",promo:"تم تطبيق رمز الخصم!",renew:"ألغِ في أي وقت. وإلا تتجدد خطتك تلقائياً حتى الإلغاء.",save:"وفّر 20%",secure:"دفع آمن",pay_method:"طريقة الدفع",pm_card:"بطاقة",pm_note:"مدعوم من Stripe · دفع آمن"},
+  zh:{eyebrow:"会员",title:"选择你的方案",sub:"简单灵活的定价——随时取消。",note:"价格为占位用的 AED，可轻松调整。",per_session:"/ 45 分钟课程",per_month:"/ 月",popular:"最受欢迎",choose:"选择方案",compare:"方案对比",feature:"功能",t_cancel:"随时取消",t_guarantee:"首节课保证",t_secure:"应用内安全支付",reserved:"保留价格剩余：",mins:"分",secs:"秒",getplan:"获取我的方案",ptitle:"获取你的 Kinora 方案",now:"现在",goal:"你的目标",promo:"优惠码已应用！",renew:"随时取消。否则方案将自动续订，直到你取消。",save:"立省 20%",secure:"安全结账",pay_method:"支付方式",pm_card:"银行卡",pm_note:"由 Stripe 提供支持 · 安全结账"},
+  ru:{eyebrow:"Подписка",title:"Выберите план",sub:"Простые гибкие тарифы — отмена в любой момент.",note:"Цены в AED — временные и легко меняются.",per_session:"/ сессия 45 мин",per_month:"/ месяц",popular:"Популярный",choose:"Выбрать план",compare:"Сравнить планы",feature:"Возможность",t_cancel:"Отмена в любой момент",t_guarantee:"Гарантия первой сессии",t_secure:"Безопасные платежи в приложении",reserved:"Цена закреплена на:",mins:"минут",secs:"секунд",getplan:"Получить план",ptitle:"Получите план Kinora",now:"Сейчас",goal:"Ваша цель",promo:"Промокод применён!",renew:"Отмена в любой момент. Иначе план продлевается автоматически до отмены.",save:"Скидка 20%",secure:"Безопасная оплата",pay_method:"Способ оплаты",pm_card:"Карта",pm_note:"При поддержке Stripe · Безопасная оплата"},
+  ko:{eyebrow:"멤버십",title:"플랜을 선택하세요",sub:"간단하고 유연한 요금 — 언제든 해지.",note:"요금은 임시 AED 값이며 쉽게 조정 가능해요.",per_session:"/ 45분 세션",per_month:"/ 월",popular:"가장 인기",choose:"플랜 선택",compare:"플랜 비교",feature:"항목",t_cancel:"언제든 해지",t_guarantee:"첫 세션 보장",t_secure:"앱 내 안전 결제",reserved:"예약 가격 남은 시간:",mins:"분",secs:"초",getplan:"내 플랜 받기",ptitle:"Kinora 플랜 받기",now:"현재",goal:"목표",promo:"프로모션 코드가 적용됐어요!",renew:"언제든 해지 가능. 아니면 해지 전까지 자동 갱신돼요.",save:"20% 할인",secure:"안전 결제",pay_method:"결제 수단",pm_card:"카드",pm_note:"Stripe 제공 · 안전 결제"}
+};
+
+/* ============================================================
+   PHASE 4 data — auth-shell copy (email + WhatsApp), 5 languages.
+   ============================================================ */
+const AUTH = {
+  en:{eyebrow:"Almost there",title_signup:"Create your account",title_login:"Welcome back",sub_signup:"Save your match and book your first live session.",sub_login:"Log in to manage your sessions.",tab_signup:"Sign up",tab_login:"Log in",name:"Full name",email:"Email",whatsapp:"WhatsApp number",password:"Password",wa_ph:"+971 50 000 0000",pw_ph:"At least 6 characters",submit_signup:"Create account",submit_login:"Log in",or:"or",wa:"Continue with WhatsApp",tg:"Continue with Telegram",brand_tag:"Live coaching, matched to you.",to_login:"Already have an account?",to_login_a:"Log in",to_signup:"New to Kinora?",to_signup_a:"Create one",plan_ctx:"Joining the",terms:"By continuing you agree to Kinora's Terms & Privacy Policy.",err_name:"Please enter your name.",err_email:"Enter a valid email address.",err_whatsapp:"Enter a valid WhatsApp number.",err_password:"Password must be at least 6 characters.",done_title:"You're all set!",done_sub:"Your account is ready — let's open your dashboard.",done_cta:"Go to dashboard"},
+  ar:{eyebrow:"خطوة أخيرة",title_signup:"أنشئ حسابك",title_login:"مرحباً بعودتك",sub_signup:"احفظ مطابقتك واحجز جلستك المباشرة الأولى.",sub_login:"سجّل الدخول لإدارة جلساتك.",tab_signup:"إنشاء حساب",tab_login:"تسجيل الدخول",name:"الاسم الكامل",email:"البريد الإلكتروني",whatsapp:"رقم واتساب",password:"كلمة المرور",wa_ph:"+971 50 000 0000",pw_ph:"6 أحرف على الأقل",submit_signup:"إنشاء الحساب",submit_login:"تسجيل الدخول",or:"أو",wa:"المتابعة عبر واتساب",tg:"المتابعة عبر تيليجرام",brand_tag:"تدريب مباشر، مصمّم لك.",to_login:"لديك حساب بالفعل؟",to_login_a:"سجّل الدخول",to_signup:"جديد في كينورا؟",to_signup_a:"أنشئ حساباً",plan_ctx:"الانضمام إلى باقة",terms:"بالمتابعة فإنك توافق على شروط كينورا وسياسة الخصوصية.",err_name:"يرجى إدخال اسمك.",err_email:"أدخل بريداً إلكترونياً صالحاً.",err_whatsapp:"أدخل رقم واتساب صالحاً.",err_password:"يجب أن تكون كلمة المرور 6 أحرف على الأقل.",done_title:"كل شيء جاهز!",done_sub:"حسابك جاهز — لنفتح لوحتك.",done_cta:"الذهاب إلى اللوحة"},
+  zh:{eyebrow:"就差一步",title_signup:"创建你的账户",title_login:"欢迎回来",sub_signup:"保存你的匹配并预约首次实时课程。",sub_login:"登录以管理你的课程。",tab_signup:"注册",tab_login:"登录",name:"全名",email:"邮箱",whatsapp:"WhatsApp 号码",password:"密码",wa_ph:"+971 50 000 0000",pw_ph:"至少 6 个字符",submit_signup:"创建账户",submit_login:"登录",or:"或",wa:"使用 WhatsApp 继续",tg:"使用 Telegram 继续",brand_tag:"实时教练，为你匹配。",to_login:"已有账户？",to_login_a:"登录",to_signup:"初次使用 Kinora？",to_signup_a:"立即创建",plan_ctx:"正在加入",terms:"继续即表示你同意 Kinora 的条款与隐私政策。",err_name:"请输入你的姓名。",err_email:"请输入有效的邮箱地址。",err_whatsapp:"请输入有效的 WhatsApp 号码。",err_password:"密码至少需 6 个字符。",done_title:"全部完成！",done_sub:"你的账户已就绪——现在打开你的面板。",done_cta:"前往面板"},
+  ru:{eyebrow:"Почти готово",title_signup:"Создайте аккаунт",title_login:"С возвращением",sub_signup:"Сохраните подбор и запишитесь на первую сессию.",sub_login:"Войдите, чтобы управлять сессиями.",tab_signup:"Регистрация",tab_login:"Вход",name:"Имя и фамилия",email:"Эл. почта",whatsapp:"Номер WhatsApp",password:"Пароль",wa_ph:"+971 50 000 0000",pw_ph:"Не менее 6 символов",submit_signup:"Создать аккаунт",submit_login:"Войти",or:"или",wa:"Продолжить через WhatsApp",tg:"Продолжить через Telegram",brand_tag:"Живой коучинг, подобранный под вас.",to_login:"Уже есть аккаунт?",to_login_a:"Войти",to_signup:"Впервые в Kinora?",to_signup_a:"Создать",plan_ctx:"Оформление плана",terms:"Продолжая, вы принимаете Условия и Политику конфиденциальности Kinora.",err_name:"Введите имя.",err_email:"Введите корректный email.",err_whatsapp:"Введите корректный номер WhatsApp.",err_password:"Пароль должен быть не короче 6 символов.",done_title:"Готово!",done_sub:"Аккаунт создан — откроем вашу панель.",done_cta:"В панель"},
+  ko:{eyebrow:"거의 다 됐어요",title_signup:"계정 만들기",title_login:"다시 오신 걸 환영해요",sub_signup:"매칭을 저장하고 첫 실시간 세션을 예약하세요.",sub_login:"로그인하고 세션을 관리하세요.",tab_signup:"회원가입",tab_login:"로그인",name:"이름",email:"이메일",whatsapp:"WhatsApp 번호",password:"비밀번호",wa_ph:"+971 50 000 0000",pw_ph:"6자 이상",submit_signup:"계정 만들기",submit_login:"로그인",or:"또는",wa:"WhatsApp으로 계속하기",tg:"Telegram으로 계속하기",brand_tag:"당신에게 맞춘 실시간 코칭.",to_login:"이미 계정이 있나요?",to_login_a:"로그인",to_signup:"Kinora가 처음이신가요?",to_signup_a:"계정 만들기",plan_ctx:"선택한 플랜:",terms:"계속하면 Kinora 이용약관 및 개인정보처리방침에 동의하게 됩니다.",err_name:"이름을 입력해 주세요.",err_email:"올바른 이메일을 입력해 주세요.",err_whatsapp:"올바른 WhatsApp 번호를 입력해 주세요.",err_password:"비밀번호는 6자 이상이어야 해요.",done_title:"모두 완료됐어요!",done_sub:"계정이 준비됐어요 — 대시보드를 열게요.",done_cta:"대시보드로 가기"}
+};
+
+/* ============================================================
+   PHASE 5 data — client-dashboard copy, 5 languages.
+   ============================================================ */
+const DASH = {
+  en:{hi:"Hi",guest:"there",nav_home:"Home",nav_book:"Book",nav_account:"Account",plan_label:"plan",no_plan:"No plan selected",prog_title:"Your progress",st_completed:"Completed",st_streak:"Day streak",st_upcoming:"Upcoming",up_title:"Upcoming sessions",empty_title:"No sessions booked yet",empty_sub:"Book your first live session to get started.",empty_cta:"Book a session",demo:"Show demo data",with:"with",join:"Join",book_title:"Book a session",s_when:"Pick a date & time",s_coach:"Choose your coach",s_confirm:"Confirm your booking",date:"Date",time:"Time",cont:"Continue",confirm:"Confirm booking",booked_title:"Session booked!",booked_sub:"It's been added to your upcoming sessions.",view_sessions:"View my sessions",sess_type:"45-min live video session",coach:"Coach",acc_title:"Account",profile:"Profile",name:"Name",email:"Email",whatsapp:"WhatsApp",subscription:"Subscription",current_plan:"Current plan",manage_billing:"Manage billing",change_plan:"Change plan",cancel_sub:"Cancel subscription",language:"Language",logout:"Log out"},
+  ar:{hi:"مرحباً",guest:"صديقي",nav_home:"الرئيسية",nav_book:"احجز",nav_account:"الحساب",plan_label:"باقة",no_plan:"لم تُختَر باقة",prog_title:"تقدّمك",st_completed:"مكتملة",st_streak:"أيام متتالية",st_upcoming:"قادمة",up_title:"الجلسات القادمة",empty_title:"لا جلسات محجوزة بعد",empty_sub:"احجز جلستك المباشرة الأولى للبدء.",empty_cta:"احجز جلسة",demo:"عرض بيانات تجريبية",with:"مع",join:"انضمام",book_title:"احجز جلسة",s_when:"اختر التاريخ والوقت",s_coach:"اختر مدربك",s_confirm:"أكّد حجزك",date:"التاريخ",time:"الوقت",cont:"متابعة",confirm:"تأكيد الحجز",booked_title:"تم حجز الجلسة!",booked_sub:"تمت إضافتها إلى جلساتك القادمة.",view_sessions:"عرض جلساتي",sess_type:"جلسة فيديو مباشرة 45 دقيقة",coach:"المدرب",acc_title:"الحساب",profile:"الملف الشخصي",name:"الاسم",email:"البريد الإلكتروني",whatsapp:"واتساب",subscription:"الاشتراك",current_plan:"الباقة الحالية",manage_billing:"إدارة الفوترة",change_plan:"تغيير الباقة",cancel_sub:"إلغاء الاشتراك",language:"اللغة",logout:"تسجيل الخروج"},
+  zh:{hi:"你好",guest:"朋友",nav_home:"主页",nav_book:"预约",nav_account:"账户",plan_label:"方案",no_plan:"未选方案",prog_title:"你的进度",st_completed:"已完成",st_streak:"连续天数",st_upcoming:"即将进行",up_title:"即将进行的课程",empty_title:"还没有预约课程",empty_sub:"预约你的首次实时课程开始吧。",empty_cta:"预约课程",demo:"显示演示数据",with:"教练",join:"加入",book_title:"预约课程",s_when:"选择日期和时间",s_coach:"选择你的教练",s_confirm:"确认预约",date:"日期",time:"时间",cont:"继续",confirm:"确认预约",booked_title:"课程已预约！",booked_sub:"已添加到你即将进行的课程。",view_sessions:"查看我的课程",sess_type:"45 分钟实时视频课程",coach:"教练",acc_title:"账户",profile:"个人资料",name:"姓名",email:"邮箱",whatsapp:"WhatsApp",subscription:"订阅",current_plan:"当前方案",manage_billing:"管理账单",change_plan:"更改方案",cancel_sub:"取消订阅",language:"语言",logout:"退出登录"},
+  ru:{hi:"Привет",guest:"друг",nav_home:"Главная",nav_book:"Запись",nav_account:"Аккаунт",plan_label:"план",no_plan:"План не выбран",prog_title:"Ваш прогресс",st_completed:"Завершено",st_streak:"Дней подряд",st_upcoming:"Предстоит",up_title:"Предстоящие сессии",empty_title:"Пока нет записей",empty_sub:"Запишитесь на первую живую сессию.",empty_cta:"Записаться",demo:"Показать демоданные",with:"с",join:"Войти",book_title:"Запись на сессию",s_when:"Выберите дату и время",s_coach:"Выберите тренера",s_confirm:"Подтвердите запись",date:"Дата",time:"Время",cont:"Далее",confirm:"Подтвердить запись",booked_title:"Сессия записана!",booked_sub:"Добавлена в предстоящие сессии.",view_sessions:"Мои сессии",sess_type:"Живая видеосессия 45 мин",coach:"Тренер",acc_title:"Аккаунт",profile:"Профиль",name:"Имя",email:"Эл. почта",whatsapp:"WhatsApp",subscription:"Подписка",current_plan:"Текущий план",manage_billing:"Управление оплатой",change_plan:"Сменить план",cancel_sub:"Отменить подписку",language:"Язык",logout:"Выйти"},
+  ko:{hi:"안녕하세요",guest:"회원님",nav_home:"홈",nav_book:"예약",nav_account:"계정",plan_label:"플랜",no_plan:"선택된 플랜 없음",prog_title:"내 진행 상황",st_completed:"완료",st_streak:"연속 일수",st_upcoming:"예정",up_title:"예정된 세션",empty_title:"아직 예약된 세션이 없어요",empty_sub:"첫 실시간 세션을 예약해 시작하세요.",empty_cta:"세션 예약",demo:"데모 데이터 표시",with:"코치",join:"입장",book_title:"세션 예약",s_when:"날짜와 시간 선택",s_coach:"코치 선택",s_confirm:"예약 확인",date:"날짜",time:"시간",cont:"계속",confirm:"예약 확정",booked_title:"세션이 예약됐어요!",booked_sub:"예정된 세션에 추가됐어요.",view_sessions:"내 세션 보기",sess_type:"45분 실시간 영상 세션",coach:"코치",acc_title:"계정",profile:"프로필",name:"이름",email:"이메일",whatsapp:"WhatsApp",subscription:"구독",current_plan:"현재 플랜",manage_billing:"결제 관리",change_plan:"플랜 변경",cancel_sub:"구독 취소",language:"언어",logout:"로그아웃"}
+};
+const LOCALES = {en:"en-US",ar:"ar-AE",zh:"zh-CN",ru:"ru-RU",ko:"ko-KR"};
+const TIME_SLOTS = ["07:00","09:00","12:00","17:00","19:00","20:00"];
+
+/* ---------- state (in-memory, POST-ready JSON) ---------- */
+const kinora = {
+  lang: "en",
+  view: "quiz",            // "quiz" | "results" | "paywall" | "auth"  (Phase 5 add: "dashboard")
+  step: 0,                 // 0..STEPS.length-1
+  // quiz answers keyed by question id — this is the object you POST later
+  // (target & motivation are multi-select arrays)
+  quiz: { goal:null, experience:null, age:null, activity:null, time:null, frequency:null, style:null, target:[], motivation:[], location:null, language:null },
+  plan: null,              // selected pricing tier id: "payg" | "member" | "elite"
+  authMode: "signup",      // "signup" | "login"
+  auth: null,              // mock auth payload once the shell validates (no real backend yet)
+  // ----- Phase 5 dashboard state -----
+  tab: "home",             // "home" | "book" | "account"
+  demo: false,             // mock-data toggle for demoing the dashboard
+  sessions: [],            // booked upcoming sessions (in-memory)
+  book: { step:0, date:"", time:"", coach:"" },  // booking-flow working state
+  reserved: 600,           // paywall "reserved price" countdown, seconds
+  payMethod: "card"        // selected Stripe payment method: card | apple | google | link
+};
+// expose for easy inspection in the console during the demo
+window.kinora = kinora;
+
+// respect reduced-motion; `?static` forces the settled state (no entrance
+// animation / typewriter) — useful for static-snapshot preview environments
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+  || location.search.includes("static");
+const M = window.Motion;
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const stage = $("#stage"), barFill = $("#barFill"), stepLabel = $("#stepLabel"),
+      backBtn = $("#backBtn"), footNote = $("#footNote"), footText = $("#footText");
+
+function L(dict){ return (dict && (dict[kinora.lang] ?? dict.en)) || ""; }
+
+/* ---------- language switcher ---------- */
+const langBtn = $("#langBtn"), langMenu = $("#langMenu");
+langBtn.addEventListener("click", e => { e.stopPropagation(); langMenu.classList.toggle("open"); });
+document.addEventListener("click", () => langMenu.classList.remove("open"));
+document.querySelectorAll(".lang-item").forEach(it =>
+  it.addEventListener("click", () => { setLang(it.dataset.lang); langMenu.classList.remove("open"); }));
+
+function setLang(lang){
+  kinora.lang = lang;
+  const cfg = UI[lang];
+  const h = document.documentElement;
+  h.setAttribute("lang", lang); h.setAttribute("dir", cfg.dir);
+  $("#langFlag").textContent = cfg.flag; $("#langLabel").textContent = cfg.label;
+  document.querySelectorAll(".lang-item").forEach(it => it.classList.toggle("active", it.dataset.lang === lang));
+  footText.textContent = cfg.foot;
+  render(true);  // re-render current screen in the new language (skip typewriter)
+}
+
+/* ---------- chrome (segmented progress + section name + back) ---------- */
+const segsEl = $("#segs"), sectionNameEl = $("#sectionName");
+function updateChrome(){
+  if (kinora.view !== "quiz"){          // results / paywall / auth / dashboard
+    segsEl.style.display = "none";
+    sectionNameEl.textContent = "";
+    backBtn.hidden = false;
+    footNote.style.visibility = "hidden";
+    return;
+  }
+  segsEl.style.display = "flex";
+  const step = STEPS[Math.min(kinora.step, STEPS.length - 1)];
+  const curSecIdx = SECTIONS.findIndex(s => s.id === step.section);
+  sectionNameEl.textContent = L(SECTIONS[curSecIdx].name);
+  // segment fill = questions reached / questions total, per section
+  segsEl.innerHTML = SECTIONS.map((s, i) => {
+    let pct = 0;
+    if (i < curSecIdx) pct = 100;
+    else if (i === curSecIdx){
+      const total = QUESTIONS.filter(q => q.section === s.id).length;
+      const reached = STEPS.filter((st, idx) => st.id && st.section === s.id && idx <= kinora.step).length;
+      pct = total ? Math.min(100, Math.round(reached / total * 100)) : 100;
+    }
+    return `<div class="seg"><span style="width:${pct}%"></span></div>`;
+  }).join("");
+  backBtn.hidden = kinora.step === 0;
+  footNote.style.visibility = kinora.step <= 1 ? "visible" : "hidden";
+}
+
+/* ---------- typewriter ---------- */
+let twTimer = null;
+function typewriter(el, text, instant){
+  clearInterval(twTimer);
+  if (instant || reduced){ el.textContent = text; return; }
+  el.textContent = "";
+  const caret = document.createElement("span");
+  caret.className = "caret"; el.appendChild(caret);
+  let i = 0;
+  twTimer = setInterval(() => {
+    if (i >= text.length){ clearInterval(twTimer); caret.remove(); return; }
+    caret.insertAdjacentText("beforebegin", text[i++]);
+  }, 20);
+}
+
+/* ---------- transitions ---------- */
+function animateIn(node){
+  if (reduced || !M) return;
+  const items = [node.querySelector(".q-head"), ...node.querySelectorAll(".opt")].filter(Boolean);
+  items.forEach((el, i) => {
+    M.animate(el, { opacity:[0,1], y:[16,0] },
+      { type:"spring", stiffness:110, damping:16, delay: 0.05 + Math.min(i, 9) * 0.045 });
+  });
+}
+
+/* ---------- render (view router) ---------- */
+function render(instant){
+  updateChrome();
+  const appEl = document.querySelector(".app");
+  appEl.classList.toggle("wide", kinora.view === "paywall");
+  appEl.classList.toggle("auth-wide", kinora.view === "auth");
+  appEl.classList.toggle("dash-mode", kinora.view === "dashboard");
+  if (kinora.view !== "paywall" && countdownTimer){ clearInterval(countdownTimer); countdownTimer = null; }
+  if (kinora.view === "results"){ stage.classList.add("scroll"); renderResults(); return; }
+  if (kinora.view === "paywall"){ stage.classList.add("scroll"); renderPaywall(); return; }
+  if (kinora.view === "auth"){ stage.classList.add("scroll"); renderAuth(); return; }
+  if (kinora.view === "dashboard"){ stage.classList.add("scroll"); renderDashboard(); return; }
+  stage.classList.remove("scroll");
+  renderQuizStep(instant);
+}
+
+/* dispatch the current quiz step by type */
+function renderQuizStep(instant){
+  const step = STEPS[kinora.step];
+  if (step.type === "inter"){ renderInterstitial(step, instant); return; }
+  if (step.type === "loader"){ renderLoader(); return; }
+  if (step.type === "number"){ renderNumber(step, instant); return; }
+  renderQuestion(step, instant);           // single | multi | search
+}
+
+/* single / multi / search question with option cards */
+function renderQuestion(step, instant){
+  const isMulti = step.type === "multi", isSearch = step.type === "search";
+  if (isSearch) stage.classList.add("scroll"); else stage.classList.remove("scroll");
+  const cur = kinora.quiz[step.id];
+  const isSel = v => isMulti ? (Array.isArray(cur) && cur.includes(v)) : cur === v;
+
+  const optHTML = opt => `
+    <button class="opt${isMulti ? " multi" : ""}${isSel(opt.val) ? " sel" : ""}" data-val="${opt.val}">
+      ${opt.flag ? `<span class="flag">${opt.flag}</span>` : ""}
+      <span class="label">${L(opt.l)}</span>
+      <span class="radio"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#04130d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </button>`;
+
+  const searchBox = isSearch ? `
+    <div class="searchbox">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.2-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input id="citySearch" type="text" placeholder="${UI[kinora.lang].loc_search}" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>` : "";
+
+  const subline = isMulti ? UI[kinora.lang].choose : (step.s ? L(step.s) : "");
+  const hasMulti = isMulti && Array.isArray(cur) && cur.length > 0;
+  const cta = isMulti
+    ? `<div class="cta-bar"><button class="cta" id="ctaNext" ${hasMulti ? "" : "disabled"}>${UI[kinora.lang].next} →</button></div>`
+    : "";
+
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <div class="q-head">
+      <h1 class="q-title" id="qTitle"></h1>
+      ${subline ? `<p class="q-sub">${subline}</p>` : ""}
+    </div>
+    ${searchBox}
+    <div class="options${isSearch ? " scrolly" : ""}" id="options">${step.o.map(optHTML).join("")}</div>
+    ${cta}`;
+
+  stage.replaceChildren(wrap);
+  typewriter($("#qTitle"), L(step.t), instant);
+  animateIn(wrap);
+
+  const optsBox = wrap.querySelector("#options");
+  const bindOpts = () => optsBox.querySelectorAll(".opt").forEach(btn =>
+    btn.addEventListener("click", () => {
+      if (isMulti) toggleMulti(step, btn.dataset.val, btn, wrap);
+      else choose(step.id, btn.dataset.val, btn);   // single & search auto-advance
+    }));
+  bindOpts();
+
+  if (cta) wrap.querySelector("#ctaNext").addEventListener("click", next);
+
+  if (isSearch){
+    const input = wrap.querySelector("#citySearch");
+    input.addEventListener("input", () => {
+      const query = input.value.trim().toLowerCase();
+      const matches = step.o.filter(o => !query || L(o.l).toLowerCase().includes(query) || (o.k || "").includes(query));
+      optsBox.innerHTML = matches.length ? matches.map(optHTML).join("") : `<div class="no-city">${UI[kinora.lang].loc_none}</div>`;
+      bindOpts();
+    });
+    if (!reduced) setTimeout(() => input.focus(), 60);
+  }
+}
+
+/* number step (e.g. age) with an info card */
+function renderNumber(step, instant){
+  stage.classList.remove("scroll");
+  const val = kinora.quiz[step.id] || (step.id === "age" ? 28 : step.min || 0);
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <div class="q-head"><h1 class="q-title" id="qTitle"></h1></div>
+    <div class="numstep">
+      <div class="numrow"><input id="numInput" type="number" inputmode="numeric" value="${val}" min="${step.min}" max="${step.max}"><span class="unit">${L(step.unit)}</span></div>
+      <div class="infocard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8h.01M11 12h1v4h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>${L(step.info)}</span>
+      </div>
+    </div>
+    <div class="cta-bar"><button class="cta" id="ctaNext">${UI[kinora.lang].cont} →</button></div>`;
+  stage.replaceChildren(wrap);
+  typewriter($("#qTitle"), L(step.t), instant);
+  animateIn(wrap);
+  const input = wrap.querySelector("#numInput");
+  kinora.quiz[step.id] = String(val);
+  input.addEventListener("input", () => { kinora.quiz[step.id] = input.value; });
+  wrap.querySelector("#ctaNext").addEventListener("click", () => {
+    let v = parseInt(input.value, 10);
+    if (isNaN(v)) v = step.min;
+    v = Math.max(step.min, Math.min(step.max, v));
+    kinora.quiz[step.id] = String(v);
+    next();
+  });
+}
+
+/* social-proof / trust interstitial */
+function renderInterstitial(step, instant){
+  stage.classList.add("scroll");
+  let media;
+  if (step.kind === "why"){
+    media = `<div class="why">${WHY.map(w => `
+      <div class="why-item"><div class="wi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none">${w.ic}</svg></div>
+      <div><div class="wt">${L(w.t)}</div><div class="wd">${L(w.d)}</div></div></div>`).join("")}</div>`;
+  } else {
+    media = `
+      <div class="stat"><div class="big">${step.big}</div><div class="sub">${L(step.bigSub)}</div></div>
+      <div class="review"><div class="stars">★★★★★</div><div class="rtext">${L(step.review.text)}</div><div class="rname">${step.review.name}</div></div>`;
+  }
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `
+    <div class="inter" data-a><h1 id="qTitle"></h1>${media}</div>
+    <div class="cta-bar" data-a><button class="cta" id="ctaNext">${UI[kinora.lang].cont} →</button></div>`;
+  stage.replaceChildren(wrap);
+  typewriter($("#qTitle"), L(step.title), instant);
+  if (!reduced && M) wrap.querySelectorAll("[data-a]").forEach((el, i) =>
+    M.animate(el, { opacity:[0,1], y:[18,0] }, { type:"spring", stiffness:110, damping:17, delay: 0.05 + i * 0.1 }));
+  wrap.querySelector("#ctaNext").addEventListener("click", next);
+}
+
+/* "Analyzing your answers…" loader, then -> results */
+function renderLoader(){
+  if (reduced){ kinora.view = "results"; render(); return; }
+  stage.classList.remove("scroll");
+  const rows = SECTIONS.map((s, i) => `
+    <div class="an-row"><div class="l"><span>${L(s.name)}</span><span class="pct" id="pct${i}">0%</span></div>
+      <div class="an-bar"><span id="anb${i}"></span></div></div>`).join("");
+  const wrap = document.createElement("div");
+  wrap.innerHTML = `<div class="analyzing"><h1>${UI[kinora.lang].analyzing}</h1>${rows}</div>`;
+  stage.replaceChildren(wrap);
+  const per = 620;
+  SECTIONS.forEach((s, i) => {
+    setTimeout(() => {
+      const b = document.getElementById("anb" + i), p = document.getElementById("pct" + i);
+      if (b) b.style.width = "100%";
+      if (p) p.innerHTML = `<span class="an-check">✓</span>`;
+    }, 200 + i * per);
+  });
+  setTimeout(() => { kinora.view = "results"; render(); }, 200 + SECTIONS.length * per + 500);
+}
+
+function choose(id, val, btn){
+  kinora.quiz[id] = val;
+  btn.parentElement.querySelectorAll(".opt").forEach(o => o.classList.remove("sel"));
+  btn.classList.add("sel");
+  // choosing the coaching *language* is a preference — does NOT switch the UI language
+  setTimeout(next, reduced ? 0 : 300);
+}
+
+function toggleMulti(step, val, btn, wrap){
+  let arr = Array.isArray(kinora.quiz[step.id]) ? kinora.quiz[step.id].slice() : [];
+  arr = arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
+  kinora.quiz[step.id] = arr;
+  btn.classList.toggle("sel", arr.includes(val));
+  const cta = wrap.querySelector("#ctaNext");
+  if (cta) cta.disabled = arr.length === 0;
+}
+
+function next(){
+  kinora.step++;
+  if (kinora.step >= STEPS.length){ kinora.view = "results"; }   // safety fallback
+  render();
+}
+function back(){
+  if (kinora.view === "dashboard"){                 // within the app: step back through booking
+    if (kinora.tab === "book" && kinora.book.step > 0 && kinora.book.step < 3){ kinora.book.step--; render(); }
+    else if (kinora.tab !== "home"){ kinora.tab = "home"; render(); }
+    return;
+  }
+  if (kinora.view === "auth"){ kinora.view = "paywall"; render(); return; }
+  if (kinora.view === "paywall"){ kinora.view = "results"; render(); return; }
+  if (kinora.view === "results"){        // back to the last real question (not the loader)
+    const lastQ = STEPS.map((s, i) => s.id ? i : -1).filter(i => i >= 0).pop();
+    kinora.view = "quiz"; kinora.step = lastQ; render(); return;
+  }
+  if (kinora.step > 0){ kinora.step--; render(); }
+}
+backBtn.addEventListener("click", back);
+
+/* keyboard: Backspace goes back; 1-9 select (quiz only) */
+document.addEventListener("keydown", e => {
+  const el = document.activeElement;
+  if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) return;  // typing, not navigating
+  if (e.key === "Backspace"){ e.preventDefault(); back(); return; }
+  if (kinora.view !== "quiz") return;
+  const n = parseInt(e.key, 10);
+  if (!isNaN(n)){
+    const opts = stage.querySelectorAll(".opt");
+    if (n >= 1 && n <= opts.length) opts[n - 1].click();
+  }
+});
+
+/* ---------- Phase 2: personalized coach match ---------- */
+function answerLabel(qid, val){
+  const q = QUESTIONS.find(x => x.id === qid);
+  if (!q) return val;
+  const o = q.o.find(x => x.val === val);
+  return o ? L(o.l) : val;
+}
+
+function renderResults(){
+  const r = RES[kinora.lang], q = kinora.quiz;
+  // safe fallbacks so the page renders even on direct entry
+  const goal = q.goal || "accountability", style = q.style || "motivational",
+        activity = q.activity || "light", time = q.time || "flexible",
+        loc = q.location || "dubai", lng = q.language || kinora.lang;
+  const persona = PERSONAS[goal], freq = FREQ[activity] || 3, minL = L(SESSION.min);
+
+  console.log("[Kinora] Match derived from:", JSON.stringify(q, null, 2));
+
+  // languages the matched coach speaks: preferred coaching language (+ English)
+  const langs = [lng.toUpperCase()]; if (lng !== "en") langs.push("EN");
+
+  // sample 45-min session
+  const rows = [
+    {d:8,  n:L(SESSION.warmup)},
+    {d:25, n:L(SESSION.main[goal]), main:true},
+    {d:7,  n:L(SESSION.finisher)},
+    {d:5,  n:L(SESSION.cooldown)}
+  ];
+  // weekly-plan dots
+  const on = FREQ_DOTS[freq] || FREQ_DOTS[3];
+  const dots = Array.from({length:7}, (_,i) => `<span class="dot${on.includes(i) ? " on" : ""}"></span>`).join("");
+
+  // starting-point meter position (activity level + experience nudge)
+  const actScore = {sedentary:15,light:38,active:62,athlete:88}[activity] ?? 40;
+  const expAdj = {never:-6,apps:2,inperson:10}[q.experience] ?? 0;
+  const pos = Math.max(6, Math.min(96, actScore + expAdj));
+  const band = pos < 38 ? "beg" : pos < 68 ? "int" : "adv";
+  const bandName = band === "beg" ? r.b_beg : band === "int" ? r.b_int : r.b_adv;
+  const callTxt = band === "beg" ? r.call_beg : band === "int" ? r.call_int : r.call_adv;
+  // focus = chosen target areas (multi), or fall back to the goal
+  const focusText = (Array.isArray(q.target) && q.target.length)
+    ? q.target.slice(0,3).map(v => answerLabel("target", v)).join(", ")
+    : answerLabel("goal", goal);
+
+  const TI = {
+    goal:'<circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="currentColor"/>',
+    level:'<path d="M5 20V10M12 20V4M19 20v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    focus:'<circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    avail:'<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    lang:'<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M3 12h18M12 3c2.6 2.7 2.6 15.3 0 18M12 3c-2.6 2.7-2.6 15.3 0 18" stroke="currentColor" stroke-width="1.4"/>'
+  };
+  const traits = [
+    {ic:TI.goal,  l:r.l_goal,  v:answerLabel("goal", goal)},
+    {ic:TI.level, l:r.l_level, v:bandName},
+    {ic:TI.focus, l:r.l_focus, v:focusText},
+    {ic:TI.avail, l:r.avail,   v:answerLabel("time", time)},
+    {ic:TI.lang,  l:r.speaks,  v:answerLabel("language", lng)}
+  ];
+
+  const wrap = document.createElement("div");
+  wrap.className = "results";
+  wrap.innerHTML = `
+    <div class="r-head" data-a>
+      <div class="q-eyebrow">${r.eyebrow}</div>
+      <h1>${r.title2}</h1>
+    </div>
+
+    <div class="profile-card" data-a>
+      <div class="section-label">${r.ready}</div>
+      <div class="meter">
+        <div class="meter-scale"><span class="meter-mark" style="inset-inline-start:${pos}%"><span class="meter-bub">${bandName}</span></span></div>
+        <div class="meter-ticks"><span>${r.b_beg}</span><span>${r.b_int}</span><span>${r.b_adv}</span></div>
+      </div>
+      <div class="callout">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><b>${bandName}</b><span>${callTxt}</span></div>
+      </div>
+      <div class="traits">
+        ${traits.map(t => `<div class="trait"><div class="ti"><svg width="19" height="19" viewBox="0 0 24 24" fill="none">${t.ic}</svg></div><div><div class="tl">${t.l}</div><div class="tv">${t.v}</div></div></div>`).join("")}
+      </div>
+    </div>
+
+    <div data-a>
+      <div class="section-label">${r.badge}</div>
+      <div class="pcard">
+        <div class="pcard-top">
+          <div class="pcard-av" style="background:${persona.grad}">${persona.initials}</div>
+          <div>
+            <div class="pcard-name">${L(persona.n)}</div>
+            <span class="pcard-badge">✓ ${r.badge}</span>
+          </div>
+        </div>
+        <div class="pmeta">
+          <div class="pmeta-row"><span class="ml">${r.style}</span><span class="mv">${L(STYLES[style])}</span></div>
+          <div class="pmeta-row"><span class="ml">${r.speaks}</span><span class="langchips">${langs.map(l => `<span class="langchip">${l}</span>`).join("")}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div data-a>
+      <div class="section-label">${r.plan}</div>
+      <div class="plan">
+        <div class="big">${freq}</div>
+        <div class="unit">${r.unit}</div>
+        <div class="dots">${dots}</div>
+        <div class="pnote">${r.pnote}</div>
+      </div>
+    </div>
+
+    <div data-a>
+      <div class="section-label">${r.session}</div>
+      <div class="session">
+        ${rows.map(row => `<div class="tl-row${row.main ? " main" : ""}"><span class="tl-dur">${row.d} ${minL}</span><span class="tl-name">${row.n}</span></div>`).join("")}
+      </div>
+    </div>
+
+    <div class="r-cta" data-a>
+      <button class="cta" id="toPaywall">${r.cta} →</button>
+      <div class="r-guarantee">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        <span>${r.guarantee}</span>
+      </div>
+    </div>`;
+
+  stage.replaceChildren(wrap);
+  // staggered reveal
+  if (!reduced && M){
+    wrap.querySelectorAll("[data-a]").forEach((el, i) =>
+      M.animate(el, { opacity:[0,1], y:[18,0] }, { type:"spring", stiffness:110, damping:17, delay: 0.04 + i * 0.07 }));
+  }
+
+  $("#toPaywall").addEventListener("click", () => { kinora.view = "paywall"; render(); });
+}
+
+/* ---------- Phase 3: pricing / paywall ---------- */
+/* ---------- countdown timer (reserved price) ---------- */
+let countdownTimer = null;
+function fmtMMSS(s){ const m = Math.floor(s/60), ss = s%60; return String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0"); }
+function paintCountdown(){ document.querySelectorAll("[data-count]").forEach(el => el.textContent = fmtMMSS(kinora.reserved)); }
+function startCountdown(){
+  if (countdownTimer || reduced) return;
+  countdownTimer = setInterval(() => { if (kinora.reserved > 0) kinora.reserved--; paintCountdown(); }, 1000);
+}
+
+function renderPaywall(){
+  const p = PAY[kinora.lang], rr = RES[kinora.lang], q = kinora.quiz;
+  if (!kinora.plan) kinora.plan = "member";           // pre-select the popular tier
+  const disc = pr => Math.round(pr * 0.8);            // 20% placeholder discount
+
+  // before/after derived from the quiz
+  const activity = q.activity || "light";
+  const actScore = {sedentary:15,light:38,active:62,athlete:88}[activity] ?? 40;
+  const expAdj = {never:-6,apps:2,inperson:10}[q.experience] ?? 0;
+  const pos = Math.max(6, Math.min(96, actScore + expAdj));
+  const band = pos < 38 ? "beg" : pos < 68 ? "int" : "adv";
+  const bandName = band === "beg" ? rr.b_beg : band === "int" ? rr.b_int : rr.b_adv;
+  const nextBand = band === "beg" ? rr.b_int : rr.b_adv;
+  const goalLabel = answerLabel("goal", q.goal || "accountability");
+  const freq = FREQ[activity] || 3;
+  const focusText = (Array.isArray(q.target) && q.target.length)
+    ? q.target.slice(0,2).map(v => answerLabel("target", v)).join(", ") : goalLabel;
+
+  // plan cards (radio-select, strikethrough → reserved price)
+  const plans = TIERS.map(tr => {
+    const sel = kinora.plan === tr.id;
+    return `<button class="plan-card${tr.pop ? " pop" : ""}${sel ? " sel" : ""}" data-plan="${tr.id}">
+      ${tr.pop ? `<div class="pc-banner">★ ${p.popular}</div>` : ""}
+      <div class="pc-body">
+        <div>
+          <div class="pc-name">${L(tr.name)}</div>
+          <div class="pc-orig"><s>AED ${tr.price}</s><span class="save">${p.save}</span></div>
+        </div>
+        <div class="pc-price"><span class="pc-cur">AED</span>${disc(tr.price)}<div class="pc-unit">${p[tr.unit]}</div></div>
+        <span class="pc-radio"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#04130d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </div>
+    </button>`;
+  }).join("");
+
+  // comparison table (kept)
+  const cell = c => c.y === true ? `<span class="yes">✓</span>` : c.y === false ? `<span class="no">—</span>` : L(c);
+  const priceRow = `<tr><th>AED</th>${TIERS.map(tr => `<td class="col${tr.pop ? " popcol" : ""}">${tr.price} <span style="color:var(--gray);font-weight:500">${p[tr.unit]}</span></td>`).join("")}</tr>`;
+  const rows = COMPARE.map(row => `<tr><th>${L(row.l)}</th>${row.c.map((c, i) => `<td class="col${TIERS[i].pop ? " popcol" : ""}">${cell(c)}</td>`).join("")}</tr>`).join("");
+  const table = `<div class="compare-wrap"><table class="compare"><thead><tr><th>${p.feature}</th>${TIERS.map(tr => `<th class="col${tr.pop ? " popcol" : ""}">${L(tr.name)}</th>`).join("")}</tr></thead><tbody>${priceRow}${rows}</tbody></table></div>`;
+
+  const trust = [
+    {t:p.t_cancel, ic:'<path d="M5 12l4 4 10-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'},
+    {t:p.t_guarantee, ic:'<path d="M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>'},
+    {t:p.t_secure, ic:'<rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="1.8"/>'}
+  ].map(x => `<div class="ti"><svg width="18" height="18" viewBox="0 0 24 24" fill="none">${x.ic}</svg><span>${x.t}</span></div>`).join("");
+
+  // payment-method options (what Stripe accepts) — radio-select shell
+  const pmCheck = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#04130d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const appleIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1c.1 1-.3 2-1 2.7-.7.8-1.7 1.4-2.7 1.3-.1-1 .4-2 1-2.6C14 1.6 15 1.1 16 1zm2.6 6.4c.9.6 1.5 1.5 1.8 2.6-1 .3-1.7 1.2-1.7 2.4 0 1.3.9 2.4 2 2.7-.3.9-.7 1.7-1.3 2.5-.7 1-1.5 2-2.6 2s-1.5-.6-2.7-.6-1.6.6-2.7.6-1.9-.9-2.6-1.9C7 18.5 6 15.7 6 13c0-2.9 1.9-4.4 3.7-4.4 1.1 0 2 .7 2.7.7.6 0 1.6-.7 2.9-.7.5 0 2.1.1 3.3 1.8z"/></svg>';
+  const gIcon = '<svg width="15" height="15" viewBox="0 0 24 24"><path fill="#4285F4" d="M12 11v3.3h4.6c-.2 1.2-1.4 3.5-4.6 3.5-2.8 0-5-2.3-5-5.1s2.2-5.1 5-5.1c1.6 0 2.6.7 3.2 1.2l2.2-2.1C16 3.4 14.2 2.6 12 2.6 7.6 2.6 4 6.2 4 10.7s3.6 8.1 8 8.1c4.6 0 7.7-3.2 7.7-7.8 0-.5 0-.9-.1-1.3H12z"/></svg>';
+  const linkIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 15l6-6M8.5 12H6.5a3 3 0 010-6h2.5M15.5 6H18a3 3 0 010 6h-2.5" stroke="#00D66F" stroke-width="1.9" stroke-linecap="round"/></svg>';
+  const pm = kinora.payMethod;
+  const pmTile = (id, name, extra = "") => `<button class="pm-tile${id === "card" || id === "link" ? " span2" : ""}${pm === id ? " sel" : ""}" data-pm="${id}"><span class="pm-radio">${pmCheck}</span><span class="pm-name">${name}</span>${extra}</button>`;
+  const payMethods = `
+    <div class="pm-grid">
+      ${pmTile("card", p.pm_card, '<span class="pm-brands"><i>VISA</i><i>MC</i><i>AMEX</i><i>Discover</i></span>')}
+      ${pmTile("apple", `${appleIcon} Apple Pay`)}
+      ${pmTile("google", `${gIcon} Google Pay`)}
+      ${pmTile("link", `${linkIcon} Link`)}
+    </div>`;
+
+  const wrap = document.createElement("div");
+  wrap.className = "pay";
+  wrap.innerHTML = `
+    <div class="countbar">
+      <span class="cb-label">${p.reserved}</span>
+      <span class="cb-time" data-count>${fmtMMSS(kinora.reserved)}</span>
+      <button class="cb-btn" id="getTop">${p.getplan}</button>
+    </div>
+
+    <div class="pay-head" data-a><div class="q-eyebrow">${p.eyebrow}</div><h1>${p.ptitle}</h1></div>
+
+    <div data-a>
+      <div class="beforeafter">
+        <div class="ba-col">
+          <div class="ba-h">${p.now}</div>
+          <div class="ba-item"><div class="k">${rr.l_level}</div><div class="v">${bandName}</div></div>
+          <div class="ba-item"><div class="k">${rr.l_focus}</div><div class="v">${focusText}</div></div>
+        </div>
+        <div class="ba-arrow">»</div>
+        <div class="ba-col goal">
+          <div class="ba-h">${p.goal}</div>
+          <div class="ba-item"><div class="k">${rr.l_goal}</div><div class="v">${goalLabel}</div></div>
+          <div class="ba-item"><div class="k">${rr.l_level}</div><div class="v">${nextBand}</div></div>
+        </div>
+      </div>
+      <div style="text-align:center;color:var(--gray);font-size:12.5px;margin-top:10px">${freq} ${rr.unit}</div>
+    </div>
+
+    <div class="promo" data-a>
+      <span class="pl">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 12l8-8h7a2 2 0 012 2v7l-8 8a2 2 0 01-3 0l-6-6a2 2 0 010-3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="15.5" cy="8.5" r="1.4" fill="currentColor"/></svg>
+        ${p.promo}
+      </span>
+      <span class="pr" data-count>${fmtMMSS(kinora.reserved)}</span>
+    </div>
+
+    <div data-a>
+      <div class="pay-note" style="margin-bottom:14px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8h.01M11 12h1v4h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>${p.note}</span>
+      </div>
+      <div class="plans">${plans}</div>
+    </div>
+
+    <div data-a>
+      <div class="section-label">${p.pay_method}</div>
+      ${payMethods}
+      <div class="pm-note2">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="1.8"/></svg>
+        <span>${p.pm_note}</span>
+      </div>
+    </div>
+
+    <div class="r-cta" data-a><button class="cta" id="getBottom">${p.getplan}</button></div>
+    <div class="renew-note" data-a>${p.renew}</div>
+
+    <div data-a><div class="section-label">${p.compare}</div>${table}</div>
+    <div class="trust3" data-a>${trust}</div>`;
+
+  stage.replaceChildren(wrap);
+  startCountdown();
+  if (!reduced && M){
+    wrap.querySelectorAll("[data-a]").forEach((el, i) =>
+      M.animate(el, { opacity:[0,1], y:[18,0] }, { type:"spring", stiffness:110, damping:17, delay: 0.04 + i * 0.06 }));
+  }
+
+  // select a plan (radio) — re-render to reflect selection
+  wrap.querySelectorAll("[data-plan]").forEach(btn =>
+    btn.addEventListener("click", () => { kinora.plan = btn.dataset.plan; render(); }));
+  // select a Stripe payment method (Card / Apple Pay / Google Pay / Link)
+  wrap.querySelectorAll("[data-pm]").forEach(btn =>
+    btn.addEventListener("click", () => { kinora.payMethod = btn.dataset.pm; render(); }));
+  // GET MY PLAN (top + bottom) -> signup
+  // TODO: connect Stripe — create a Checkout Session / Payment Element with the
+  // selected plan (kinora.plan) + method (kinora.payMethod: card|apple|google|link)
+  const go = () => { console.log("[Kinora] Plan:", kinora.plan, "· method:", kinora.payMethod); kinora.view = "auth"; kinora.authMode = "signup"; render(); };
+  wrap.querySelector("#getTop").addEventListener("click", go);
+  wrap.querySelector("#getBottom").addEventListener("click", go);
+}
+
+/* ---------- Phase 4: auth shell (email + WhatsApp) ---------- */
+function authField(name, type, label, ph, ac){
+  return `<div class="field" data-field="${name}">
+    <label>${label}</label>
+    <input name="${name}" type="${type}" placeholder="${ph}" autocomplete="${ac}" inputmode="${type === "tel" ? "tel" : type === "email" ? "email" : "text"}">
+    <div class="msg"></div>
+  </div>`;
+}
+
+function renderAuth(){
+  const a = AUTH[kinora.lang], isSignup = kinora.authMode === "signup";
+  const tier = TIERS.find(t => t.id === kinora.plan);
+  const planCtx = tier
+    ? `<div class="plan-ctx" data-a><span class="pcd"></span>${a.plan_ctx} <b>${L(tier.name)}</b> · AED ${tier.price} ${PAY[kinora.lang][tier.unit]}</div>`
+    : "";
+
+  const waIcon = '<svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-2.8.7.7-2.8-.2-.3A8 8 0 1112 20zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.6 6.6 0 01-1.9-1.2 7.3 7.3 0 01-1.4-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4 5 5 0 002.2.5 2.7 2.7 0 001.8-1.3 2.2 2.2 0 00.2-1.3c-.1-.1-.3-.2-.5-.3z"/></svg>';
+  const tgIcon = '<svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3c.3-1-.7-1.7-1.5-1.4L2.6 10.2c-1 .4-1 1.5-.1 1.8l4.6 1.4 1.7 5.5c.2.6.5.7 1 .3l2.6-2 4.6 3.4c.6.5 1.4.2 1.6-.6l3.3-15.1zM8.2 14.1l9-5.7c.2-.1.4.1.2.3l-7.3 6.6-.3 3.2-1.6-4.4z"/></svg>';
+  const trust = [PAY[kinora.lang].t_guarantee, PAY[kinora.lang].t_cancel, PAY[kinora.lang].t_secure];
+
+  const wrap = document.createElement("div");
+  wrap.className = "auth-split";
+  wrap.innerHTML = `
+    <div class="auth-brand">
+      <div class="ab-mark">
+        <svg viewBox="0 0 48 48" fill="none" width="30" height="30"><rect x="1.5" y="1.5" width="45" height="45" rx="13" stroke="url(#kg)" stroke-width="2"/><path d="M17 11 V37" stroke="url(#kg)" stroke-width="4.4" stroke-linecap="round"/><path d="M33 13 C20 17 20 30 33 35" stroke="#6FFFC2" stroke-width="4.4" stroke-linecap="round"/><path d="M17 24 L26 24" stroke="url(#kg)" stroke-width="4.4" stroke-linecap="round"/></svg>
+        KINORA
+      </div>
+      <div class="ab-tag">${a.brand_tag}</div>
+      <div class="ab-trust">${trust.map(t => `<div class="ab-ti"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>${t}</div>`).join("")}</div>
+    </div>
+
+    <div class="auth">
+      <div class="auth-head" data-a>
+        <div class="q-eyebrow" style="text-align:center">${a.eyebrow}</div>
+        <h1>${isSignup ? a.title_signup : a.title_login}</h1>
+        <p>${isSignup ? a.sub_signup : a.sub_login}</p>
+      </div>
+      ${planCtx}
+      <div class="tabs" data-a>
+        <div class="tab${isSignup ? " on" : ""}" data-mode="signup">${a.tab_signup}</div>
+        <div class="tab${!isSignup ? " on" : ""}" data-mode="login">${a.tab_login}</div>
+      </div>
+      <form id="authForm" novalidate data-a>
+        ${isSignup ? authField("name", "text", a.name, "", "name") : ""}
+        ${authField("email", "email", a.email, "you@example.com", "email")}
+        ${isSignup ? authField("whatsapp", "tel", a.whatsapp, a.wa_ph, "tel") : ""}
+        ${authField("password", "password", a.password, a.pw_ph, isSignup ? "new-password" : "current-password")}
+        <button class="btn btn-primary" type="submit">${isSignup ? a.submit_signup : a.submit_login}</button>
+      </form>
+      <div class="divider" data-a>${a.or}</div>
+      <div class="social-row" data-a>
+        <button class="btn btn-ghost wa-btn" id="waBtn">${waIcon}<span>${a.wa}</span></button>
+        <button class="btn btn-ghost tg-btn" id="tgBtn">${tgIcon}<span>${a.tg}</span></button>
+      </div>
+      <div class="auth-foot" data-a>${isSignup
+        ? `${a.to_login} <a data-mode="login">${a.to_login_a}</a>`
+        : `${a.to_signup} <a data-mode="signup">${a.to_signup_a}</a>`}</div>
+      <div class="auth-terms" data-a>${a.terms}</div>
+    </div>`;
+
+  stage.replaceChildren(wrap);
+  if (!reduced && M){
+    wrap.querySelectorAll("[data-a]").forEach((el, i) =>
+      M.animate(el, { opacity:[0,1], y:[16,0] }, { type:"spring", stiffness:120, damping:16, delay: 0.04 + i * 0.05 }));
+  }
+
+  // switch between signup / login (tabs + footer link)
+  wrap.querySelectorAll("[data-mode]").forEach(el =>
+    el.addEventListener("click", () => { kinora.authMode = el.dataset.mode; render(); }));
+  wrap.querySelector("#authForm").addEventListener("submit", e => { e.preventDefault(); submitAuth(wrap, isSignup); });
+  // social sign-in — in the shell these simulate a provider handoff
+  wrap.querySelector("#waBtn").addEventListener("click", () => {
+    // TODO: connect WhatsApp OTP / provider (e.g. Supabase phone auth)
+    kinora.auth = { method:"whatsapp", mode:kinora.authMode }; authSuccess();
+  });
+  wrap.querySelector("#tgBtn").addEventListener("click", () => {
+    // TODO: connect Telegram Login Widget / bot auth (verify hash server-side)
+    kinora.auth = { method:"telegram", mode:kinora.authMode }; authSuccess();
+  });
+}
+
+function submitAuth(wrap, isSignup){
+  const a = AUTH[kinora.lang];
+  let ok = true;
+  const val = n => { const el = wrap.querySelector(`[name="${n}"]`); return el ? el.value.trim() : ""; };
+  const setErr = (name, msg) => {
+    const f = wrap.querySelector(`[data-field="${name}"]`); if (!f) return;
+    f.classList.toggle("err", !!msg);
+    if (msg){ f.querySelector(".msg").textContent = msg; ok = false; }
+  };
+  if (isSignup) setErr("name", val("name").length >= 2 ? "" : a.err_name);
+  setErr("email", /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("email")) ? "" : a.err_email);
+  if (isSignup) setErr("whatsapp", /^\+?[0-9][0-9\s-]{6,}$/.test(val("whatsapp")) ? "" : a.err_whatsapp);
+  setErr("password", val("password").length >= 6 ? "" : a.err_password);
+  if (!ok) return;
+
+  /* =====================================================================
+     TODO: connect Supabase auth  (drop-in — the UI above needs no redesign)
+     Replace this mock with a real call, e.g.:
+       const { data, error } = await supabase.auth.signUp({
+         email: val("email"), password: val("password"),
+         options: { data: { full_name: val("name"), whatsapp: val("whatsapp") } }
+       });
+     — or supabase.auth.signInWithPassword({ email, password }) for login.
+     (Firebase createUserWithEmailAndPassword / signInWithEmailAndPassword work the same.)
+     ===================================================================== */
+  kinora.auth = { name:val("name"), email:val("email"), whatsapp:val("whatsapp"), mode:isSignup ? "signup" : "login" };
+  console.log("[Kinora] (mock) auth payload:", JSON.stringify(kinora.auth, null, 2));
+  authSuccess();
+}
+
+function authSuccess(){
+  const a = AUTH[kinora.lang];
+  const wrap = document.createElement("div");
+  wrap.className = "auth";
+  wrap.innerHTML = `
+    <div class="done" data-a>
+      <div class="ic"><svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h2>${a.done_title}</h2>
+      <p>${a.done_sub}</p>
+      <button class="btn btn-primary" id="toDash" style="margin-top:24px">${a.done_cta} →</button>
+    </div>`;
+  stage.replaceChildren(wrap);
+  if (!reduced && M) M.animate(wrap.querySelector(".done"), { opacity:[0,1], scale:[.96,1] }, { type:"spring", stiffness:120, damping:15 });
+  $("#toDash").addEventListener("click", () => { kinora.view = "dashboard"; kinora.tab = "home"; render(); });
+}
+
+/* ============================================================
+   Phase 5: client dashboard shell
+   ============================================================ */
+function fmtDate(str){
+  try { return new Date(str + "T00:00:00").toLocaleDateString(LOCALES[kinora.lang] || "en-US",
+    { weekday:"short", month:"short", day:"numeric" }); }
+  catch(e){ return str; }
+}
+function isoOffset(days){ const d = new Date(); d.setDate(d.getDate() + days); return d.toISOString().slice(0,10); }
+function coachName(id){ const p = PERSONAS[id]; return p ? L(p.n) : id; }
+
+// demo sessions used by the mock-data toggle
+function demoSessions(){
+  return [
+    { id:"demo1", coach:"build_muscle", date:isoOffset(2), time:"09:00" },
+    { id:"demo2", coach:"mobility",     date:isoOffset(5), time:"19:00" }
+  ];
+}
+function upcomingSessions(){
+  // demo data + any sessions the user booked this session, soonest first
+  const base = kinora.demo ? demoSessions() : [];
+  return [...base, ...kinora.sessions].sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
+}
+
+function renderDashboard(){
+  const d = DASH[kinora.lang];
+  const name = (kinora.auth && kinora.auth.name) ? kinora.auth.name.split(" ")[0] : d.guest;
+  const tier = TIERS.find(t => t.id === kinora.plan);
+  const planBadge = tier
+    ? `<div class="dash-plan"><span>★</span> ${L(tier.name)} ${d.plan_label}</div>`
+    : `<div class="dash-plan" style="color:var(--gray)">${d.no_plan}</div>`;
+
+  const navIcons = {
+    home:'<path d="M4 11l8-7 8 7M6 10v9h12v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+    book:'<rect x="4" y="5" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M4 9h16M8 3v3M16 3v3M12 13v4M10 15h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    account:'<circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
+  };
+  const nav = ["home","book","account"].map(t =>
+    `<button class="navtab${kinora.tab === t ? " on" : ""}" data-tab="${t}"><svg viewBox="0 0 24 24" fill="none">${navIcons[t]}</svg>${d["nav_" + t]}</button>`).join("");
+
+  const wrap = document.createElement("div");
+  wrap.className = "dash";
+  wrap.innerHTML = `
+    <div class="dash-top">
+      <div class="dash-hi">${d.hi}, ${name} 👋</div>
+      ${planBadge}
+    </div>
+    <div class="dash-body" id="dashBody"></div>
+    <nav class="dash-nav">${nav}</nav>`;
+  stage.replaceChildren(wrap);
+
+  const body = wrap.querySelector("#dashBody");
+  if (kinora.tab === "home") dashHome(body);
+  else if (kinora.tab === "book") dashBook(body);
+  else dashAccount(body);
+
+  if (!reduced && M){
+    wrap.querySelectorAll("[data-a]").forEach((el, i) =>
+      M.animate(el, { opacity:[0,1], y:[16,0] }, { type:"spring", stiffness:120, damping:17, delay: 0.03 + i * 0.06 }));
+  }
+  wrap.querySelectorAll("[data-tab]").forEach(b =>
+    b.addEventListener("click", () => { kinora.tab = b.dataset.tab; if (b.dataset.tab === "book") kinora.book.step = 0; render(); }));
+}
+
+/* ----- Home tab: progress + upcoming sessions + demo toggle ----- */
+function dashHome(body){
+  const d = DASH[kinora.lang];
+  const sessions = upcomingSessions();
+  const completed = kinora.demo ? 12 : 0;
+  const streak = kinora.demo ? 5 : 0;
+
+  const stats = `
+    <div class="stats" data-a>
+      <div class="stat"><div class="sn">${completed}</div><div class="sl">${d.st_completed}</div></div>
+      <div class="stat"><div class="sn">${streak}</div><div class="sl">${d.st_streak}</div></div>
+      <div class="stat"><div class="sn">${sessions.length}</div><div class="sl">${d.st_upcoming}</div></div>
+    </div>`;
+
+  const list = sessions.length
+    ? sessions.map(s => {
+        const p = PERSONAS[s.coach];
+        return `<div class="sess"><div class="sav" style="background:${p ? p.grad : "var(--mint)"}">${p ? p.initials : "K"}</div>
+          <div><div class="st">${fmtDate(s.date)} · ${s.time}</div><div class="sd">${d.with} ${coachName(s.coach)} · ${d.sess_type}</div></div>
+          <button class="btn btn-ghost btn-join sbtn" style="padding:8px 16px;font-size:13px">${d.join}</button></div>`;
+      }).join("")
+    : `<div class="empty">
+        <div class="ei"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="2" stroke="#6FFFC2" stroke-width="1.7"/><path d="M4 9h16M8 3v3M16 3v3" stroke="#6FFFC2" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <h3>${d.empty_title}</h3><p>${d.empty_sub}</p>
+        <button class="btn btn-primary" id="emptyBook">${d.empty_cta} →</button></div>`;
+
+  body.innerHTML = `
+    <div class="section-label" data-a>${d.prog_title}</div>
+    ${stats}
+    <div class="toggle-row" data-a><span>${d.demo}</span><div class="switch${kinora.demo ? " on" : ""}" id="demoSwitch" role="switch" aria-checked="${kinora.demo}"></div></div>
+    <div class="section-label" data-a style="margin-top:20px">${d.up_title}</div>
+    <div data-a>${list}</div>`;
+
+  const sw = body.querySelector("#demoSwitch");
+  if (sw) sw.addEventListener("click", () => { kinora.demo = !kinora.demo; render(); });
+  const eb = body.querySelector("#emptyBook");
+  if (eb) eb.addEventListener("click", () => { kinora.tab = "book"; kinora.book.step = 0; render(); });
+  // "Join" is a live-session placeholder in the shell
+  body.querySelectorAll(".btn-join").forEach(b =>
+    b.addEventListener("click", () => alert("// TODO: launch the live video session (e.g. Daily / Twilio / Agora room).")));
+}
+
+/* ----- Book tab: date/time -> coach -> confirm ----- */
+function dashBook(body){
+  const d = DASH[kinora.lang], b = kinora.book;
+  const dots = [0,1,2].map(i => `<div class="book-dot${b.step >= i ? " on" : ""}"></div>`).join("");
+
+  if (b.step === 3){  // booked success
+    body.innerHTML = `
+      <div class="empty" data-a style="border-style:solid;border-color:var(--mint);background:rgba(111,255,194,.05)">
+        <div class="ei"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3>${d.booked_title}</h3><p>${d.booked_sub}</p>
+        <button class="btn btn-primary" id="viewSess">${d.view_sessions} →</button></div>`;
+    body.querySelector("#viewSess").addEventListener("click", () => { kinora.tab = "home"; render(); });
+    return;
+  }
+
+  let inner = "";
+  if (b.step === 0){
+    inner = `
+      <div class="book-h">${d.s_when}</div>
+      <div class="field" style="margin-bottom:20px"><label>${d.date}</label>
+        <input type="date" class="date-input" id="bookDate" min="${isoOffset(0)}" value="${b.date}"></div>
+      <label style="display:block;font-size:13px;color:var(--gray);margin-bottom:9px;font-weight:600">${d.time}</label>
+      <div class="slots">${TIME_SLOTS.map(t => `<button class="slot${b.time === t ? " on" : ""}" data-slot="${t}">${t}</button>`).join("")}</div>
+      <div class="book-actions"><button class="btn btn-primary" id="bookNext" ${b.date && b.time ? "" : "disabled"}>${d.cont} →</button></div>`;
+  } else if (b.step === 1){
+    inner = `
+      <div class="book-h">${d.s_coach}</div>
+      <div class="coachpick">${Object.keys(PERSONAS).map(id => { const p = PERSONAS[id];
+        return `<button class="cpick${b.coach === id ? " on" : ""}" data-coach="${id}">
+          <span class="cav" style="background:${p.grad}">${p.initials}</span>
+          <span><span class="cn">${L(p.n)}</span><span class="cs" style="display:block">${d.sess_type}</span></span></button>`; }).join("")}</div>
+      <div class="book-actions"><button class="btn btn-primary" id="bookNext" ${b.coach ? "" : "disabled"}>${d.cont} →</button></div>`;
+  } else {
+    const p = PERSONAS[b.coach];
+    inner = `
+      <div class="book-h">${d.s_confirm}</div>
+      <div class="confirm">
+        <div class="crow"><span class="cl">${d.coach}</span><span class="cv">${coachName(b.coach)}</span></div>
+        <div class="crow"><span class="cl">${d.date}</span><span class="cv">${fmtDate(b.date)}</span></div>
+        <div class="crow"><span class="cl">${d.time}</span><span class="cv">${b.time}</span></div>
+        <div class="crow"><span class="cl">${DASH[kinora.lang].nav_book}</span><span class="cv">${d.sess_type}</span></div>
+      </div>
+      <div class="book-actions"><button class="btn btn-primary" id="bookConfirm">${d.confirm}</button></div>`;
+  }
+
+  body.innerHTML = `<div class="book-steps" data-a>${dots}</div><div data-a>${inner}</div>`;
+
+  const dateEl = body.querySelector("#bookDate");
+  if (dateEl) dateEl.addEventListener("change", e => { kinora.book.date = e.target.value; render(); });
+  body.querySelectorAll("[data-slot]").forEach(s =>
+    s.addEventListener("click", () => { kinora.book.time = s.dataset.slot; render(); }));
+  body.querySelectorAll("[data-coach]").forEach(c =>
+    c.addEventListener("click", () => { kinora.book.coach = c.dataset.coach; render(); }));
+  const next = body.querySelector("#bookNext");
+  if (next) next.addEventListener("click", () => { kinora.book.step++; render(); });
+  const conf = body.querySelector("#bookConfirm");
+  if (conf) conf.addEventListener("click", () => {
+    // ---- add the booked session to in-memory state (POST-ready) ----
+    // TODO: connect Stripe — charge the session / decrement plan credits here
+    kinora.sessions.push({ id:"s" + Date.now(), coach:kinora.book.coach, date:kinora.book.date, time:kinora.book.time });
+    console.log("[Kinora] Session booked:", JSON.stringify(kinora.sessions.at(-1), null, 2));
+    kinora.book = { step:3, date:"", time:"", coach:"" };
+    render();
+  });
+}
+
+/* ----- Account tab: profile + subscription + language + logout ----- */
+function dashAccount(body){
+  const d = DASH[kinora.lang], a = kinora.auth || {};
+  const tier = TIERS.find(t => t.id === kinora.plan);
+  const priceLine = tier ? `AED ${tier.price} ${PAY[kinora.lang][tier.unit]}` : d.no_plan;
+
+  const langPills = Object.keys(UI).map(code =>
+    `<button class="lang-pill${kinora.lang === code ? " on" : ""}" data-setlang="${code}"><span>${UI[code].flag}</span>${UI[code].label}</button>`).join("");
+
+  body.innerHTML = `
+    <div class="section-label" data-a>${d.profile}</div>
+    <div class="acct-card" data-a>
+      <div class="acct-row"><span class="al">${d.name}</span><span class="av">${a.name || "—"}</span></div>
+      <div class="acct-row"><span class="al">${d.email}</span><span class="av">${a.email || "—"}</span></div>
+      <div class="acct-row"><span class="al">${d.whatsapp}</span><span class="av">${a.whatsapp || "—"}</span></div>
+    </div>
+
+    <div class="section-label" data-a style="margin-top:22px">${d.subscription}</div>
+    <div class="acct-card" data-a>
+      <div class="acct-row"><span class="al">${d.current_plan}</span><span class="av">${tier ? L(tier.name) : d.no_plan}</span></div>
+      <div class="acct-row"><span class="al">AED</span><span class="av">${priceLine}</span></div>
+    </div>
+    <div class="acct-actions" data-a>
+      <button class="btn btn-primary" id="billing">${d.manage_billing}</button>
+      <button class="btn btn-ghost" id="changePlan">${d.change_plan}</button>
+      <button class="btn btn-danger" id="cancelSub">${d.cancel_sub}</button>
+    </div>
+
+    <div class="section-label" data-a style="margin-top:22px">${d.language}</div>
+    <div class="lang-pills" data-a>${langPills}</div>
+
+    <div class="acct-actions" data-a style="margin-top:22px">
+      <button class="btn btn-ghost" id="logout">${d.logout}</button>
+    </div>`;
+
+  body.querySelectorAll("[data-setlang]").forEach(p =>
+    p.addEventListener("click", () => setLang(p.dataset.setlang)));
+  // ---- billing actions: Stripe integration points ----
+  body.querySelector("#billing").addEventListener("click", () =>
+    alert("// TODO: connect Stripe — open the customer billing portal."));
+  body.querySelector("#cancelSub").addEventListener("click", () =>
+    alert("// TODO: connect Stripe — cancel the subscription via the billing API."));
+  body.querySelector("#changePlan").addEventListener("click", () => { kinora.view = "paywall"; render(); });
+  body.querySelector("#logout").addEventListener("click", () => {
+    // shell logout — a real build would call supabase.auth.signOut()
+    kinora.auth = null; kinora.view = "auth"; kinora.authMode = "login"; render();
+  });
+}
+
+/* ---------- init ---------- */
+setLang("en");
+
+/* register the service worker (installable PWA + offline) */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
