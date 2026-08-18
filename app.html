@@ -522,6 +522,28 @@
   /* booking date input + slots use rounded numerals */
   .slot,.date-input{font-family:var(--rounded)}
 
+  /* ===== detail bottom-sheet (Phase 1: clickable details in the funnel) ===== */
+  .sheet-overlay{position:fixed;inset:0;background:rgba(4,7,6,.72);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;visibility:hidden;transition:opacity .22s}
+  .sheet-overlay.open{opacity:1;visibility:visible}
+  .sheet{background:linear-gradient(165deg,var(--panel),var(--panel-2));border:1px solid var(--line);border-top-left-radius:24px;border-top-right-radius:24px;width:100%;max-width:520px;max-height:88vh;overflow:auto;padding:22px 22px calc(22px + env(safe-area-inset-bottom));transform:translateY(26px);transition:transform .28s cubic-bezier(.2,.8,.2,1);position:relative}
+  .sheet-overlay.open .sheet{transform:none}
+  @media(min-width:560px){.sheet-overlay{align-items:center;padding:20px}.sheet{border-radius:24px}}
+  .sheet-x{position:absolute;top:14px;inset-inline-end:14px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line-2);background:rgba(255,255,255,.03);color:var(--white);cursor:pointer;font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;z-index:2}
+  .sheet-x:hover{border-color:var(--mint);color:var(--mint)}
+  .sheet-grab{width:40px;height:4px;border-radius:100px;background:rgba(255,255,255,.18);margin:0 auto 16px}
+  .sheet .section-label{margin-top:20px}
+  .sheet-actions{display:flex;flex-direction:column;gap:10px;margin-top:22px}
+  .sheet-actions .btn,.sheet-actions .cta{width:100%}
+  .sheet-rows{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+  .sheet-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2);font-size:14.5px}
+  .sheet-row:last-child{border-bottom:none}
+  .sheet-row .k{color:var(--gray)} .sheet-row .v{font-family:var(--rounded);font-weight:800;text-align:end}
+  .pcard-chev{margin-inline-start:auto;color:var(--gray);font-size:28px;line-height:1;align-self:center}
+  html[dir="rtl"] .pcard-chev{transform:scaleX(-1)}
+  #pcardBtn:hover{border-color:var(--mint)}
+  .sess{cursor:pointer}
+  .sess:hover{border-color:var(--line)}
+
   @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
 </style>
 </head>
@@ -565,6 +587,9 @@
     </span>
   </div>
 </div>
+
+<!-- reusable detail bottom-sheet (coach persona / session details) -->
+<div class="sheet-overlay" id="sheet"><div class="sheet"><button class="sheet-x" onclick="closeSheet()" aria-label="Close">×</button><div id="sheetBody"></div></div></div>
 
 <script>
 /* ============================================================
@@ -894,11 +919,11 @@ const AUTH = {
    PHASE 5 data — client-dashboard copy, 5 languages.
    ============================================================ */
 const DASH = {
-  en:{hi:"Hi",guest:"there",nav_home:"Home",nav_book:"Book",nav_account:"Account",plan_label:"plan",no_plan:"No plan selected",prog_title:"Your progress",st_completed:"Completed",st_streak:"Day streak",st_upcoming:"Upcoming",up_title:"Upcoming sessions",empty_title:"No sessions booked yet",empty_sub:"Book your first live session to get started.",empty_cta:"Book a session",demo:"Show demo data",with:"with",join:"Join",book_title:"Book a session",s_when:"Pick a date & time",s_coach:"Choose your coach",s_confirm:"Confirm your booking",date:"Date",time:"Time",cont:"Continue",confirm:"Confirm booking",booked_title:"Session booked!",booked_sub:"It's been added to your upcoming sessions.",view_sessions:"View my sessions",sess_type:"45-min live video session",coach:"Coach",acc_title:"Account",profile:"Profile",name:"Name",email:"Email",whatsapp:"WhatsApp",subscription:"Subscription",current_plan:"Current plan",manage_billing:"Manage billing",change_plan:"Change plan",cancel_sub:"Cancel subscription",language:"Language",logout:"Log out"},
-  ar:{hi:"مرحباً",guest:"صديقي",nav_home:"الرئيسية",nav_book:"احجز",nav_account:"الحساب",plan_label:"باقة",no_plan:"لم تُختَر باقة",prog_title:"تقدّمك",st_completed:"مكتملة",st_streak:"أيام متتالية",st_upcoming:"قادمة",up_title:"الجلسات القادمة",empty_title:"لا جلسات محجوزة بعد",empty_sub:"احجز جلستك المباشرة الأولى للبدء.",empty_cta:"احجز جلسة",demo:"عرض بيانات تجريبية",with:"مع",join:"انضمام",book_title:"احجز جلسة",s_when:"اختر التاريخ والوقت",s_coach:"اختر مدربك",s_confirm:"أكّد حجزك",date:"التاريخ",time:"الوقت",cont:"متابعة",confirm:"تأكيد الحجز",booked_title:"تم حجز الجلسة!",booked_sub:"تمت إضافتها إلى جلساتك القادمة.",view_sessions:"عرض جلساتي",sess_type:"جلسة فيديو مباشرة 45 دقيقة",coach:"المدرب",acc_title:"الحساب",profile:"الملف الشخصي",name:"الاسم",email:"البريد الإلكتروني",whatsapp:"واتساب",subscription:"الاشتراك",current_plan:"الباقة الحالية",manage_billing:"إدارة الفوترة",change_plan:"تغيير الباقة",cancel_sub:"إلغاء الاشتراك",language:"اللغة",logout:"تسجيل الخروج"},
-  zh:{hi:"你好",guest:"朋友",nav_home:"主页",nav_book:"预约",nav_account:"账户",plan_label:"方案",no_plan:"未选方案",prog_title:"你的进度",st_completed:"已完成",st_streak:"连续天数",st_upcoming:"即将进行",up_title:"即将进行的课程",empty_title:"还没有预约课程",empty_sub:"预约你的首次实时课程开始吧。",empty_cta:"预约课程",demo:"显示演示数据",with:"教练",join:"加入",book_title:"预约课程",s_when:"选择日期和时间",s_coach:"选择你的教练",s_confirm:"确认预约",date:"日期",time:"时间",cont:"继续",confirm:"确认预约",booked_title:"课程已预约！",booked_sub:"已添加到你即将进行的课程。",view_sessions:"查看我的课程",sess_type:"45 分钟实时视频课程",coach:"教练",acc_title:"账户",profile:"个人资料",name:"姓名",email:"邮箱",whatsapp:"WhatsApp",subscription:"订阅",current_plan:"当前方案",manage_billing:"管理账单",change_plan:"更改方案",cancel_sub:"取消订阅",language:"语言",logout:"退出登录"},
-  ru:{hi:"Привет",guest:"друг",nav_home:"Главная",nav_book:"Запись",nav_account:"Аккаунт",plan_label:"план",no_plan:"План не выбран",prog_title:"Ваш прогресс",st_completed:"Завершено",st_streak:"Дней подряд",st_upcoming:"Предстоит",up_title:"Предстоящие сессии",empty_title:"Пока нет записей",empty_sub:"Запишитесь на первую живую сессию.",empty_cta:"Записаться",demo:"Показать демоданные",with:"с",join:"Войти",book_title:"Запись на сессию",s_when:"Выберите дату и время",s_coach:"Выберите тренера",s_confirm:"Подтвердите запись",date:"Дата",time:"Время",cont:"Далее",confirm:"Подтвердить запись",booked_title:"Сессия записана!",booked_sub:"Добавлена в предстоящие сессии.",view_sessions:"Мои сессии",sess_type:"Живая видеосессия 45 мин",coach:"Тренер",acc_title:"Аккаунт",profile:"Профиль",name:"Имя",email:"Эл. почта",whatsapp:"WhatsApp",subscription:"Подписка",current_plan:"Текущий план",manage_billing:"Управление оплатой",change_plan:"Сменить план",cancel_sub:"Отменить подписку",language:"Язык",logout:"Выйти"},
-  ko:{hi:"안녕하세요",guest:"회원님",nav_home:"홈",nav_book:"예약",nav_account:"계정",plan_label:"플랜",no_plan:"선택된 플랜 없음",prog_title:"내 진행 상황",st_completed:"완료",st_streak:"연속 일수",st_upcoming:"예정",up_title:"예정된 세션",empty_title:"아직 예약된 세션이 없어요",empty_sub:"첫 실시간 세션을 예약해 시작하세요.",empty_cta:"세션 예약",demo:"데모 데이터 표시",with:"코치",join:"입장",book_title:"세션 예약",s_when:"날짜와 시간 선택",s_coach:"코치 선택",s_confirm:"예약 확인",date:"날짜",time:"시간",cont:"계속",confirm:"예약 확정",booked_title:"세션이 예약됐어요!",booked_sub:"예정된 세션에 추가됐어요.",view_sessions:"내 세션 보기",sess_type:"45분 실시간 영상 세션",coach:"코치",acc_title:"계정",profile:"프로필",name:"이름",email:"이메일",whatsapp:"WhatsApp",subscription:"구독",current_plan:"현재 플랜",manage_billing:"결제 관리",change_plan:"플랜 변경",cancel_sub:"구독 취소",language:"언어",logout:"로그아웃"}
+  en:{hi:"Hi",guest:"there",nav_home:"Home",nav_book:"Book",nav_account:"Account",plan_label:"plan",no_plan:"No plan selected",prog_title:"Your progress",st_completed:"Completed",st_streak:"Day streak",st_upcoming:"Upcoming",up_title:"Upcoming sessions",empty_title:"No sessions booked yet",empty_sub:"Book your first live session to get started.",empty_cta:"Book a session",demo:"Show demo data",with:"with",join:"Join",book_title:"Book a session",s_when:"Pick a date & time",s_coach:"Choose your coach",s_confirm:"Confirm your booking",date:"Date",time:"Time",cont:"Continue",confirm:"Confirm booking",booked_title:"Session booked!",booked_sub:"It's been added to your upcoming sessions.",view_sessions:"View my sessions",sess_type:"45-min live video session",coach:"Coach",acc_title:"Account",profile:"Profile",name:"Name",email:"Email",whatsapp:"WhatsApp",subscription:"Subscription",current_plan:"Current plan",manage_billing:"Manage billing",change_plan:"Change plan",cancel_sub:"Cancel subscription",language:"Language",logout:"Log out",status:"Status",reschedule:"Reschedule",cancel:"Cancel session"},
+  ar:{hi:"مرحباً",guest:"صديقي",nav_home:"الرئيسية",nav_book:"احجز",nav_account:"الحساب",plan_label:"باقة",no_plan:"لم تُختَر باقة",prog_title:"تقدّمك",st_completed:"مكتملة",st_streak:"أيام متتالية",st_upcoming:"قادمة",up_title:"الجلسات القادمة",empty_title:"لا جلسات محجوزة بعد",empty_sub:"احجز جلستك المباشرة الأولى للبدء.",empty_cta:"احجز جلسة",demo:"عرض بيانات تجريبية",with:"مع",join:"انضمام",book_title:"احجز جلسة",s_when:"اختر التاريخ والوقت",s_coach:"اختر مدربك",s_confirm:"أكّد حجزك",date:"التاريخ",time:"الوقت",cont:"متابعة",confirm:"تأكيد الحجز",booked_title:"تم حجز الجلسة!",booked_sub:"تمت إضافتها إلى جلساتك القادمة.",view_sessions:"عرض جلساتي",sess_type:"جلسة فيديو مباشرة 45 دقيقة",coach:"المدرب",acc_title:"الحساب",profile:"الملف الشخصي",name:"الاسم",email:"البريد الإلكتروني",whatsapp:"واتساب",subscription:"الاشتراك",current_plan:"الباقة الحالية",manage_billing:"إدارة الفوترة",change_plan:"تغيير الباقة",cancel_sub:"إلغاء الاشتراك",language:"اللغة",logout:"تسجيل الخروج",status:"الحالة",reschedule:"إعادة جدولة",cancel:"إلغاء الجلسة"},
+  zh:{hi:"你好",guest:"朋友",nav_home:"主页",nav_book:"预约",nav_account:"账户",plan_label:"方案",no_plan:"未选方案",prog_title:"你的进度",st_completed:"已完成",st_streak:"连续天数",st_upcoming:"即将进行",up_title:"即将进行的课程",empty_title:"还没有预约课程",empty_sub:"预约你的首次实时课程开始吧。",empty_cta:"预约课程",demo:"显示演示数据",with:"教练",join:"加入",book_title:"预约课程",s_when:"选择日期和时间",s_coach:"选择你的教练",s_confirm:"确认预约",date:"日期",time:"时间",cont:"继续",confirm:"确认预约",booked_title:"课程已预约！",booked_sub:"已添加到你即将进行的课程。",view_sessions:"查看我的课程",sess_type:"45 分钟实时视频课程",coach:"教练",acc_title:"账户",profile:"个人资料",name:"姓名",email:"邮箱",whatsapp:"WhatsApp",subscription:"订阅",current_plan:"当前方案",manage_billing:"管理账单",change_plan:"更改方案",cancel_sub:"取消订阅",language:"语言",logout:"退出登录",status:"状态",reschedule:"改期",cancel:"取消课程"},
+  ru:{hi:"Привет",guest:"друг",nav_home:"Главная",nav_book:"Запись",nav_account:"Аккаунт",plan_label:"план",no_plan:"План не выбран",prog_title:"Ваш прогресс",st_completed:"Завершено",st_streak:"Дней подряд",st_upcoming:"Предстоит",up_title:"Предстоящие сессии",empty_title:"Пока нет записей",empty_sub:"Запишитесь на первую живую сессию.",empty_cta:"Записаться",demo:"Показать демоданные",with:"с",join:"Войти",book_title:"Запись на сессию",s_when:"Выберите дату и время",s_coach:"Выберите тренера",s_confirm:"Подтвердите запись",date:"Дата",time:"Время",cont:"Далее",confirm:"Подтвердить запись",booked_title:"Сессия записана!",booked_sub:"Добавлена в предстоящие сессии.",view_sessions:"Мои сессии",sess_type:"Живая видеосессия 45 мин",coach:"Тренер",acc_title:"Аккаунт",profile:"Профиль",name:"Имя",email:"Эл. почта",whatsapp:"WhatsApp",subscription:"Подписка",current_plan:"Текущий план",manage_billing:"Управление оплатой",change_plan:"Сменить план",cancel_sub:"Отменить подписку",language:"Язык",logout:"Выйти",status:"Статус",reschedule:"Перенести",cancel:"Отменить сессию"},
+  ko:{hi:"안녕하세요",guest:"회원님",nav_home:"홈",nav_book:"예약",nav_account:"계정",plan_label:"플랜",no_plan:"선택된 플랜 없음",prog_title:"내 진행 상황",st_completed:"완료",st_streak:"연속 일수",st_upcoming:"예정",up_title:"예정된 세션",empty_title:"아직 예약된 세션이 없어요",empty_sub:"첫 실시간 세션을 예약해 시작하세요.",empty_cta:"세션 예약",demo:"데모 데이터 표시",with:"코치",join:"입장",book_title:"세션 예약",s_when:"날짜와 시간 선택",s_coach:"코치 선택",s_confirm:"예약 확인",date:"날짜",time:"시간",cont:"계속",confirm:"예약 확정",booked_title:"세션이 예약됐어요!",booked_sub:"예정된 세션에 추가됐어요.",view_sessions:"내 세션 보기",sess_type:"45분 실시간 영상 세션",coach:"코치",acc_title:"계정",profile:"프로필",name:"이름",email:"이메일",whatsapp:"WhatsApp",subscription:"구독",current_plan:"현재 플랜",manage_billing:"결제 관리",change_plan:"플랜 변경",cancel_sub:"구독 취소",language:"언어",logout:"로그아웃",status:"상태",reschedule:"일정 변경",cancel:"세션 취소"}
 };
 const LOCALES = {en:"en-US",ar:"ar-AE",zh:"zh-CN",ru:"ru-RU",ko:"ko-KR"};
 const TIME_SLOTS = ["07:00","09:00","12:00","17:00","19:00","20:00"];
@@ -938,6 +963,13 @@ const stage = $("#stage"), barFill = $("#barFill"), stepLabel = $("#stepLabel"),
       backBtn = $("#backBtn"), footNote = $("#footNote"), footText = $("#footText");
 
 function L(dict){ return (dict && (dict[kinora.lang] ?? dict.en)) || ""; }
+
+/* ---------- detail bottom-sheet (coach persona / session) ---------- */
+const sheetEl = $("#sheet"), sheetBody = $("#sheetBody");
+function openSheet(html){ sheetBody.innerHTML = html; sheetEl.classList.add("open"); }
+function closeSheet(){ sheetEl.classList.remove("open"); }
+sheetEl.addEventListener("click", e => { if (e.target === sheetEl) closeSheet(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
 
 /* ---------- language switcher ---------- */
 const langBtn = $("#langBtn"), langMenu = $("#langMenu");
@@ -1308,13 +1340,14 @@ function renderResults(){
 
     <div data-a>
       <div class="section-label">${r.badge}</div>
-      <div class="pcard">
+      <div class="pcard" id="pcardBtn" style="cursor:pointer">
         <div class="pcard-top">
           <div class="pcard-av" style="background:${persona.grad}">${persona.initials}</div>
           <div>
             <div class="pcard-name">${L(persona.n)}</div>
             <span class="pcard-badge">✓ ${r.badge}</span>
           </div>
+          <div class="pcard-chev">›</div>
         </div>
         <div class="pmeta">
           <div class="pmeta-row"><span class="ml">${r.style}</span><span class="mv">${L(STYLES[style])}</span></div>
@@ -1356,6 +1389,28 @@ function renderResults(){
   }
 
   $("#toPaywall").addEventListener("click", () => { kinora.view = "paywall"; render(); });
+
+  // coach persona -> detail sheet (Phase 1: clickable details)
+  const coachSheet = `
+    <div class="sheet-grab"></div>
+    <div class="pcard-top" style="padding:0 0 16px;border-bottom:1px solid var(--line-2)">
+      <div class="pcard-av" style="background:${persona.grad}">${persona.initials}</div>
+      <div><div class="pcard-name">${L(persona.n)}</div><span class="pcard-badge">✓ ${r.badge}</span></div>
+    </div>
+    <div class="sheet-rows">
+      <div class="sheet-row"><span class="k">${r.style}</span><span class="v">${L(STYLES[style])}</span></div>
+      <div class="sheet-row"><span class="k">${r.speaks}</span><span class="v">${langs.join(" · ")}</span></div>
+      <div class="sheet-row"><span class="k">${r.avail}</span><span class="v">${answerLabel("time", time)}</span></div>
+    </div>
+    <div class="section-label">${r.session}</div>
+    <div class="session">${rows.map(row => `<div class="tl-row${row.main ? " main" : ""}"><span class="tl-dur">${row.d} ${minL}</span><span class="tl-name">${row.n}</span></div>`).join("")}</div>
+    <div class="section-label">${r.why}</div>
+    <div class="why">${WHY.map(w => `<div class="why-item"><div class="wi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none">${w.ic}</svg></div><div><div class="wt">${L(w.t)}</div><div class="wd">${L(w.d)}</div></div></div>`).join("")}</div>
+    <div class="sheet-actions"><button class="cta" id="sheetToPaywall">${r.cta} →</button></div>`;
+  $("#pcardBtn").addEventListener("click", () => {
+    openSheet(coachSheet);
+    $("#sheetToPaywall").addEventListener("click", () => { closeSheet(); kinora.view = "paywall"; render(); });
+  });
 }
 
 /* ---------- Phase 3: pricing / paywall ---------- */
@@ -1729,9 +1784,9 @@ function dashHome(body){
     </div>`;
 
   const list = sessions.length
-    ? sessions.map(s => {
+    ? sessions.map((s, i) => {
         const p = PERSONAS[s.coach];
-        return `<div class="sess"><div class="sav" style="background:${p ? p.grad : "var(--mint)"}">${p ? p.initials : "K"}</div>
+        return `<div class="sess" data-si="${i}"><div class="sav" style="background:${p ? p.grad : "var(--mint)"}">${p ? p.initials : "K"}</div>
           <div><div class="st">${fmtDate(s.date)} · ${s.time}</div><div class="sd">${d.with} ${coachName(s.coach)} · ${d.sess_type}</div></div>
           <button class="btn btn-ghost btn-join sbtn" style="padding:8px 16px;font-size:13px">${d.join}</button></div>`;
       }).join("")
@@ -1753,7 +1808,37 @@ function dashHome(body){
   if (eb) eb.addEventListener("click", () => { kinora.tab = "book"; kinora.book.step = 0; render(); });
   // "Join" is a live-session placeholder in the shell
   body.querySelectorAll(".btn-join").forEach(b =>
-    b.addEventListener("click", () => alert("// TODO: launch the live video session (e.g. Daily / Twilio / Agora room).")));
+    b.addEventListener("click", e => { e.stopPropagation(); alert("// TODO: launch the live video session (e.g. Daily / Twilio / Agora room)."); }));
+  // session card -> detail sheet
+  body.querySelectorAll(".sess").forEach(el =>
+    el.addEventListener("click", () => openSessionSheet(sessions[Number(el.dataset.si)])));
+}
+
+/* session detail bottom-sheet */
+function openSessionSheet(s){
+  if (!s) return;
+  const d = DASH[kinora.lang], p = PERSONAS[s.coach];
+  openSheet(`
+    <div class="sheet-grab"></div>
+    <div class="sess" style="margin:0 0 6px;background:none;border:none;padding:0;cursor:default">
+      <div class="sav" style="background:${p ? p.grad : "var(--mint)"}">${p ? p.initials : "K"}</div>
+      <div><div class="st">${coachName(s.coach)}</div><div class="sd">${d.sess_type}</div></div>
+    </div>
+    <div class="sheet-rows">
+      <div class="sheet-row"><span class="k">${d.date}</span><span class="v">${fmtDate(s.date)}</span></div>
+      <div class="sheet-row"><span class="k">${d.time}</span><span class="v">${s.time}</span></div>
+      <div class="sheet-row"><span class="k">${d.coach}</span><span class="v">${coachName(s.coach)}</span></div>
+      <div class="sheet-row"><span class="k">${d.status}</span><span class="v" style="color:var(--mint)">${d.st_upcoming}</span></div>
+    </div>
+    <div class="sheet-actions">
+      <button class="cta" id="shJoin">${d.join}</button>
+      <button class="btn btn-ghost" id="shResch">${d.reschedule}</button>
+      <button class="btn btn-danger" id="shCancel">${d.cancel}</button>
+    </div>`);
+  // TODO: connect live video + real reschedule/cancel (backend)
+  $("#shJoin").addEventListener("click", () => alert("// TODO: launch the live video session."));
+  $("#shResch").addEventListener("click", () => { closeSheet(); kinora.tab = "book"; kinora.book.step = 0; render(); });
+  $("#shCancel").addEventListener("click", () => { kinora.sessions = kinora.sessions.filter(x => x.id !== s.id); closeSheet(); render(); });
 }
 
 /* ----- Book tab: date/time -> coach -> confirm ----- */
