@@ -22,6 +22,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <!-- Motion (spring-physics animation library) — same as the marketing site -->
 <script src="https://cdn.jsdelivr.net/npm/motion@12.40.0/dist/motion.js"></script>
+<!-- Runtime config + Supabase client (real accounts when keys are set in config.js) -->
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --bg:#070a09; --bg-2:#0c1310; --panel:#12140f; --panel-2:#0e100c;
@@ -908,11 +911,11 @@ function fmtPrice(aed){ return fmtIn(aed, kinora.currency); }
    PHASE 4 data — auth-shell copy (email + WhatsApp), 5 languages.
    ============================================================ */
 const AUTH = {
-  en:{eyebrow:"Almost there",title_signup:"Create your account",title_login:"Welcome back",sub_signup:"Save your match and book your first live session.",sub_login:"Log in to manage your sessions.",tab_signup:"Sign up",tab_login:"Log in",name:"Full name",email:"Email",whatsapp:"WhatsApp number",password:"Password",wa_ph:"+971 50 000 0000",pw_ph:"At least 6 characters",submit_signup:"Create account",submit_login:"Log in",or:"or",wa:"Continue with WhatsApp",tg:"Continue with Telegram",brand_tag:"Live coaching, matched to you.",to_login:"Already have an account?",to_login_a:"Log in",to_signup:"New to Kinora?",to_signup_a:"Create one",plan_ctx:"Joining the",terms:"By continuing you agree to Kinora's Terms & Privacy Policy.",err_name:"Please enter your name.",err_email:"Enter a valid email address.",err_whatsapp:"Enter a valid WhatsApp number.",err_password:"Password must be at least 6 characters.",done_title:"You're all set!",done_sub:"Your account is ready — let's open your dashboard.",done_cta:"Go to dashboard"},
-  ar:{eyebrow:"خطوة أخيرة",title_signup:"أنشئ حسابك",title_login:"مرحباً بعودتك",sub_signup:"احفظ مطابقتك واحجز جلستك المباشرة الأولى.",sub_login:"سجّل الدخول لإدارة جلساتك.",tab_signup:"إنشاء حساب",tab_login:"تسجيل الدخول",name:"الاسم الكامل",email:"البريد الإلكتروني",whatsapp:"رقم واتساب",password:"كلمة المرور",wa_ph:"+971 50 000 0000",pw_ph:"6 أحرف على الأقل",submit_signup:"إنشاء الحساب",submit_login:"تسجيل الدخول",or:"أو",wa:"المتابعة عبر واتساب",tg:"المتابعة عبر تيليجرام",brand_tag:"تدريب مباشر، مصمّم لك.",to_login:"لديك حساب بالفعل؟",to_login_a:"سجّل الدخول",to_signup:"جديد في كينورا؟",to_signup_a:"أنشئ حساباً",plan_ctx:"الانضمام إلى باقة",terms:"بالمتابعة فإنك توافق على شروط كينورا وسياسة الخصوصية.",err_name:"يرجى إدخال اسمك.",err_email:"أدخل بريداً إلكترونياً صالحاً.",err_whatsapp:"أدخل رقم واتساب صالحاً.",err_password:"يجب أن تكون كلمة المرور 6 أحرف على الأقل.",done_title:"كل شيء جاهز!",done_sub:"حسابك جاهز — لنفتح لوحتك.",done_cta:"الذهاب إلى اللوحة"},
-  zh:{eyebrow:"就差一步",title_signup:"创建你的账户",title_login:"欢迎回来",sub_signup:"保存你的匹配并预约首次实时课程。",sub_login:"登录以管理你的课程。",tab_signup:"注册",tab_login:"登录",name:"全名",email:"邮箱",whatsapp:"WhatsApp 号码",password:"密码",wa_ph:"+971 50 000 0000",pw_ph:"至少 6 个字符",submit_signup:"创建账户",submit_login:"登录",or:"或",wa:"使用 WhatsApp 继续",tg:"使用 Telegram 继续",brand_tag:"实时教练，为你匹配。",to_login:"已有账户？",to_login_a:"登录",to_signup:"初次使用 Kinora？",to_signup_a:"立即创建",plan_ctx:"正在加入",terms:"继续即表示你同意 Kinora 的条款与隐私政策。",err_name:"请输入你的姓名。",err_email:"请输入有效的邮箱地址。",err_whatsapp:"请输入有效的 WhatsApp 号码。",err_password:"密码至少需 6 个字符。",done_title:"全部完成！",done_sub:"你的账户已就绪——现在打开你的面板。",done_cta:"前往面板"},
-  ru:{eyebrow:"Почти готово",title_signup:"Создайте аккаунт",title_login:"С возвращением",sub_signup:"Сохраните подбор и запишитесь на первую сессию.",sub_login:"Войдите, чтобы управлять сессиями.",tab_signup:"Регистрация",tab_login:"Вход",name:"Имя и фамилия",email:"Эл. почта",whatsapp:"Номер WhatsApp",password:"Пароль",wa_ph:"+971 50 000 0000",pw_ph:"Не менее 6 символов",submit_signup:"Создать аккаунт",submit_login:"Войти",or:"или",wa:"Продолжить через WhatsApp",tg:"Продолжить через Telegram",brand_tag:"Живой коучинг, подобранный под вас.",to_login:"Уже есть аккаунт?",to_login_a:"Войти",to_signup:"Впервые в Kinora?",to_signup_a:"Создать",plan_ctx:"Оформление плана",terms:"Продолжая, вы принимаете Условия и Политику конфиденциальности Kinora.",err_name:"Введите имя.",err_email:"Введите корректный email.",err_whatsapp:"Введите корректный номер WhatsApp.",err_password:"Пароль должен быть не короче 6 символов.",done_title:"Готово!",done_sub:"Аккаунт создан — откроем вашу панель.",done_cta:"В панель"},
-  ko:{eyebrow:"거의 다 됐어요",title_signup:"계정 만들기",title_login:"다시 오신 걸 환영해요",sub_signup:"매칭을 저장하고 첫 실시간 세션을 예약하세요.",sub_login:"로그인하고 세션을 관리하세요.",tab_signup:"회원가입",tab_login:"로그인",name:"이름",email:"이메일",whatsapp:"WhatsApp 번호",password:"비밀번호",wa_ph:"+971 50 000 0000",pw_ph:"6자 이상",submit_signup:"계정 만들기",submit_login:"로그인",or:"또는",wa:"WhatsApp으로 계속하기",tg:"Telegram으로 계속하기",brand_tag:"당신에게 맞춘 실시간 코칭.",to_login:"이미 계정이 있나요?",to_login_a:"로그인",to_signup:"Kinora가 처음이신가요?",to_signup_a:"계정 만들기",plan_ctx:"선택한 플랜:",terms:"계속하면 Kinora 이용약관 및 개인정보처리방침에 동의하게 됩니다.",err_name:"이름을 입력해 주세요.",err_email:"올바른 이메일을 입력해 주세요.",err_whatsapp:"올바른 WhatsApp 번호를 입력해 주세요.",err_password:"비밀번호는 6자 이상이어야 해요.",done_title:"모두 완료됐어요!",done_sub:"계정이 준비됐어요 — 대시보드를 열게요.",done_cta:"대시보드로 가기"}
+  en:{eyebrow:"Almost there",title_signup:"Create your account",title_login:"Welcome back",sub_signup:"Save your match and book your first live session.",sub_login:"Log in to manage your sessions.",tab_signup:"Sign up",tab_login:"Log in",name:"Full name",email:"Email",whatsapp:"WhatsApp number",password:"Password",wa_ph:"+971 50 000 0000",pw_ph:"At least 6 characters",submit_signup:"Create account",submit_login:"Log in",or:"or",wa:"Continue with WhatsApp",tg:"Continue with Telegram",brand_tag:"Live coaching, matched to you.",to_login:"Already have an account?",to_login_a:"Log in",to_signup:"New to Kinora?",to_signup_a:"Create one",plan_ctx:"Joining the",terms:"By continuing you agree to Kinora's Terms & Privacy Policy.",err_name:"Please enter your name.",err_email:"Enter a valid email address.",err_whatsapp:"Enter a valid WhatsApp number.",err_password:"Password must be at least 6 characters.",done_title:"You're all set!",done_sub:"Your account is ready — let's open your dashboard.",done_cta:"Go to dashboard",err_generic:"Something went wrong. Please try again.",confirm_title:"Check your email",confirm_sub:"We sent a confirmation link to {email}. Confirm it, then log in.",confirm_cta:"Back to log in"},
+  ar:{eyebrow:"خطوة أخيرة",title_signup:"أنشئ حسابك",title_login:"مرحباً بعودتك",sub_signup:"احفظ مطابقتك واحجز جلستك المباشرة الأولى.",sub_login:"سجّل الدخول لإدارة جلساتك.",tab_signup:"إنشاء حساب",tab_login:"تسجيل الدخول",name:"الاسم الكامل",email:"البريد الإلكتروني",whatsapp:"رقم واتساب",password:"كلمة المرور",wa_ph:"+971 50 000 0000",pw_ph:"6 أحرف على الأقل",submit_signup:"إنشاء الحساب",submit_login:"تسجيل الدخول",or:"أو",wa:"المتابعة عبر واتساب",tg:"المتابعة عبر تيليجرام",brand_tag:"تدريب مباشر، مصمّم لك.",to_login:"لديك حساب بالفعل؟",to_login_a:"سجّل الدخول",to_signup:"جديد في كينورا؟",to_signup_a:"أنشئ حساباً",plan_ctx:"الانضمام إلى باقة",terms:"بالمتابعة فإنك توافق على شروط كينورا وسياسة الخصوصية.",err_name:"يرجى إدخال اسمك.",err_email:"أدخل بريداً إلكترونياً صالحاً.",err_whatsapp:"أدخل رقم واتساب صالحاً.",err_password:"يجب أن تكون كلمة المرور 6 أحرف على الأقل.",done_title:"كل شيء جاهز!",done_sub:"حسابك جاهز — لنفتح لوحتك.",done_cta:"الذهاب إلى اللوحة",err_generic:"حدث خطأ ما. حاول مرة أخرى.",confirm_title:"تحقق من بريدك",confirm_sub:"أرسلنا رابط تأكيد إلى {email}. أكّده ثم سجّل الدخول.",confirm_cta:"العودة لتسجيل الدخول"},
+  zh:{eyebrow:"就差一步",title_signup:"创建你的账户",title_login:"欢迎回来",sub_signup:"保存你的匹配并预约首次实时课程。",sub_login:"登录以管理你的课程。",tab_signup:"注册",tab_login:"登录",name:"全名",email:"邮箱",whatsapp:"WhatsApp 号码",password:"密码",wa_ph:"+971 50 000 0000",pw_ph:"至少 6 个字符",submit_signup:"创建账户",submit_login:"登录",or:"或",wa:"使用 WhatsApp 继续",tg:"使用 Telegram 继续",brand_tag:"实时教练，为你匹配。",to_login:"已有账户？",to_login_a:"登录",to_signup:"初次使用 Kinora？",to_signup_a:"立即创建",plan_ctx:"正在加入",terms:"继续即表示你同意 Kinora 的条款与隐私政策。",err_name:"请输入你的姓名。",err_email:"请输入有效的邮箱地址。",err_whatsapp:"请输入有效的 WhatsApp 号码。",err_password:"密码至少需 6 个字符。",done_title:"全部完成！",done_sub:"你的账户已就绪——现在打开你的面板。",done_cta:"前往面板",err_generic:"出错了，请重试。",confirm_title:"请查收邮件",confirm_sub:"我们已向 {email} 发送确认链接。确认后即可登录。",confirm_cta:"返回登录"},
+  ru:{eyebrow:"Почти готово",title_signup:"Создайте аккаунт",title_login:"С возвращением",sub_signup:"Сохраните подбор и запишитесь на первую сессию.",sub_login:"Войдите, чтобы управлять сессиями.",tab_signup:"Регистрация",tab_login:"Вход",name:"Имя и фамилия",email:"Эл. почта",whatsapp:"Номер WhatsApp",password:"Пароль",wa_ph:"+971 50 000 0000",pw_ph:"Не менее 6 символов",submit_signup:"Создать аккаунт",submit_login:"Войти",or:"или",wa:"Продолжить через WhatsApp",tg:"Продолжить через Telegram",brand_tag:"Живой коучинг, подобранный под вас.",to_login:"Уже есть аккаунт?",to_login_a:"Войти",to_signup:"Впервые в Kinora?",to_signup_a:"Создать",plan_ctx:"Оформление плана",terms:"Продолжая, вы принимаете Условия и Политику конфиденциальности Kinora.",err_name:"Введите имя.",err_email:"Введите корректный email.",err_whatsapp:"Введите корректный номер WhatsApp.",err_password:"Пароль должен быть не короче 6 символов.",done_title:"Готово!",done_sub:"Аккаунт создан — откроем вашу панель.",done_cta:"В панель",err_generic:"Что-то пошло не так. Попробуйте снова.",confirm_title:"Проверьте почту",confirm_sub:"Мы отправили ссылку для подтверждения на {email}. Подтвердите и войдите.",confirm_cta:"Назад ко входу"},
+  ko:{eyebrow:"거의 다 됐어요",title_signup:"계정 만들기",title_login:"다시 오신 걸 환영해요",sub_signup:"매칭을 저장하고 첫 실시간 세션을 예약하세요.",sub_login:"로그인하고 세션을 관리하세요.",tab_signup:"회원가입",tab_login:"로그인",name:"이름",email:"이메일",whatsapp:"WhatsApp 번호",password:"비밀번호",wa_ph:"+971 50 000 0000",pw_ph:"6자 이상",submit_signup:"계정 만들기",submit_login:"로그인",or:"또는",wa:"WhatsApp으로 계속하기",tg:"Telegram으로 계속하기",brand_tag:"당신에게 맞춘 실시간 코칭.",to_login:"이미 계정이 있나요?",to_login_a:"로그인",to_signup:"Kinora가 처음이신가요?",to_signup_a:"계정 만들기",plan_ctx:"선택한 플랜:",terms:"계속하면 Kinora 이용약관 및 개인정보처리방침에 동의하게 됩니다.",err_name:"이름을 입력해 주세요.",err_email:"올바른 이메일을 입력해 주세요.",err_whatsapp:"올바른 WhatsApp 번호를 입력해 주세요.",err_password:"비밀번호는 6자 이상이어야 해요.",done_title:"모두 완료됐어요!",done_sub:"계정이 준비됐어요 — 대시보드를 열게요.",done_cta:"대시보드로 가기",err_generic:"문제가 발생했어요. 다시 시도해 주세요.",confirm_title:"이메일을 확인하세요",confirm_sub:"{email}(으)로 확인 링크를 보냈어요. 확인 후 로그인하세요.",confirm_cta:"로그인으로 돌아가기"}
 };
 
 /* ============================================================
@@ -956,6 +959,12 @@ window.kinora = kinora;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
   || location.search.includes("static");
 const M = window.Motion;
+
+/* Supabase client — null unless keys are set in config.js (then real auth kicks in) */
+const SB = (window.supabase && window.KINORA_CONFIG && window.KINORA_CONFIG.SUPABASE_URL && window.KINORA_CONFIG.SUPABASE_ANON_KEY)
+  ? window.supabase.createClient(window.KINORA_CONFIG.SUPABASE_URL, window.KINORA_CONFIG.SUPABASE_ANON_KEY)
+  : null;
+if (SB) console.log("[Kinora] Supabase connected — real accounts enabled.");
 
 /* ---------- helpers ---------- */
 const $ = s => document.querySelector(s);
@@ -1659,7 +1668,7 @@ function renderAuth(){
   });
 }
 
-function submitAuth(wrap, isSignup){
+async function submitAuth(wrap, isSignup){
   const a = AUTH[kinora.lang];
   let ok = true;
   const val = n => { const el = wrap.querySelector(`[name="${n}"]`); return el ? el.value.trim() : ""; };
@@ -1674,19 +1683,46 @@ function submitAuth(wrap, isSignup){
   setErr("password", val("password").length >= 6 ? "" : a.err_password);
   if (!ok) return;
 
-  /* =====================================================================
-     TODO: connect Supabase auth  (drop-in — the UI above needs no redesign)
-     Replace this mock with a real call, e.g.:
-       const { data, error } = await supabase.auth.signUp({
-         email: val("email"), password: val("password"),
-         options: { data: { full_name: val("name"), whatsapp: val("whatsapp") } }
-       });
-     — or supabase.auth.signInWithPassword({ email, password }) for login.
-     (Firebase createUserWithEmailAndPassword / signInWithEmailAndPassword work the same.)
-     ===================================================================== */
-  kinora.auth = { name:val("name"), email:val("email"), whatsapp:val("whatsapp"), mode:isSignup ? "signup" : "login" };
+  const name = val("name"), email = val("email"), whatsapp = val("whatsapp"), password = val("password");
+
+  // ---- REAL accounts via Supabase (when keys are set in config.js) ----
+  if (SB){
+    const btn = wrap.querySelector('#authForm button[type="submit"]');
+    if (btn) btn.disabled = true;
+    try {
+      const res = isSignup
+        ? await SB.auth.signUp({ email, password, options:{ data:{ full_name:name, whatsapp } } })
+        : await SB.auth.signInWithPassword({ email, password });
+      if (res.error){ setErr("password", res.error.message || a.err_generic); if (btn) btn.disabled = false; return; }
+      const u = res.data && res.data.user;
+      kinora.auth = { name: name || (u && u.user_metadata && u.user_metadata.full_name) || "", email, whatsapp, method:"email", mode:isSignup ? "signup" : "login" };
+      if (isSignup && res.data && !res.data.session){ authConfirm(email); return; }  // email confirmation required
+      authSuccess();
+    } catch(e){ setErr("password", a.err_generic); if (btn) btn.disabled = false; }
+    return;
+  }
+
+  // ---- Demo/mock path (no keys configured) — keeps the live demo working ----
+  kinora.auth = { name, email, whatsapp, mode:isSignup ? "signup" : "login" };
   console.log("[Kinora] (mock) auth payload:", JSON.stringify(kinora.auth, null, 2));
   authSuccess();
+}
+
+/* "Check your email" view — shown when Supabase requires email confirmation */
+function authConfirm(email){
+  const a = AUTH[kinora.lang];
+  const wrap = document.createElement("div");
+  wrap.className = "auth";
+  wrap.innerHTML = `
+    <div class="done" data-a>
+      <div class="ic"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="#6FFFC2" stroke-width="1.8"/><path d="M4 7l8 6 8-6" stroke="#6FFFC2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h2>${a.confirm_title}</h2>
+      <p>${a.confirm_sub.replace("{email}", email)}</p>
+      <button class="btn btn-primary" id="toLogin" style="margin-top:24px">${a.confirm_cta}</button>
+    </div>`;
+  stage.replaceChildren(wrap);
+  if (!reduced && M) M.animate(wrap.querySelector(".done"), { opacity:[0,1], scale:[.96,1] }, { type:"spring", stiffness:120, damping:15 });
+  $("#toLogin").addEventListener("click", () => { kinora.authMode = "login"; kinora.view = "auth"; render(); });
 }
 
 function authSuccess(){
@@ -1950,14 +1986,25 @@ function dashAccount(body){
   body.querySelector("#cancelSub").addEventListener("click", () =>
     alert("// TODO: connect Stripe — cancel the subscription via the billing API."));
   body.querySelector("#changePlan").addEventListener("click", () => { kinora.view = "paywall"; render(); });
-  body.querySelector("#logout").addEventListener("click", () => {
-    // shell logout — a real build would call supabase.auth.signOut()
+  body.querySelector("#logout").addEventListener("click", async () => {
+    if (SB) { try { await SB.auth.signOut(); } catch(e){} }   // real sign-out when connected
     kinora.auth = null; kinora.view = "auth"; kinora.authMode = "login"; render();
   });
 }
 
 /* ---------- init ---------- */
 setLang("en");
+
+/* restore an existing Supabase session (so Account shows the real user) */
+if (SB){
+  SB.auth.getSession().then(({ data }) => {
+    const u = data && data.session && data.session.user;
+    if (u){
+      kinora.auth = { name:(u.user_metadata && u.user_metadata.full_name) || "", email:u.email, whatsapp:(u.user_metadata && u.user_metadata.whatsapp) || "", method:"email", mode:"login" };
+      if (kinora.view === "dashboard") render();
+    }
+  });
+}
 
 /* register the service worker (installable PWA + offline) */
 if ("serviceWorker" in navigator) {

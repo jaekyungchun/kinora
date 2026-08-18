@@ -1,9 +1,10 @@
 /* Kinora service worker — installable PWA + offline shell.
    Network-first (so updates land immediately), cache fallback for offline. */
-const CACHE = "kinora-v1";
+const CACHE = "kinora-v2";
 const CORE = [
   "./index.html",
   "./app.html",
+  "./config.js",
   "./manifest.webmanifest",
   "./assets/icon-192.png",
   "./assets/icon-512.png",
