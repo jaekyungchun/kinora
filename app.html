@@ -1738,7 +1738,8 @@ function authSuccess(){
     </div>`;
   stage.replaceChildren(wrap);
   if (!reduced && M) M.animate(wrap.querySelector(".done"), { opacity:[0,1], scale:[.96,1] }, { type:"spring", stiffness:120, damping:15 });
-  $("#toDash").addEventListener("click", () => { kinora.view = "dashboard"; kinora.tab = "home"; render(); });
+  saveQuiz();  // persist the quiz answers to Supabase (if connected)
+  $("#toDash").addEventListener("click", () => { kinora.view = "dashboard"; kinora.tab = "home"; render(); loadBookings(); });
 }
 
 /* ============================================================
@@ -1763,6 +1764,23 @@ function upcomingSessions(){
   // demo data + any sessions the user booked this session, soonest first
   const base = kinora.demo ? demoSessions() : [];
   return [...base, ...kinora.sessions].sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
+}
+
+/* ---------- Phase 5: Supabase persistence (quiz results + bookings) ---------- */
+async function saveQuiz(){
+  if (!SB || !kinora.auth) return;
+  try { await SB.from("quiz_results").insert({ answers: kinora.quiz }); }   // user_id defaults to auth.uid()
+  catch(e){ /* table not created yet — harmless */ }
+}
+async function loadBookings(){
+  if (!SB || !kinora.auth) return;
+  try {
+    const { data, error } = await SB.from("bookings").select("*").eq("status","upcoming").order("session_date", { ascending:true });
+    if (!error && data){
+      kinora.sessions = data.map(b => ({ id:b.id, coach:b.coach, date:b.session_date, time:b.session_time }));
+      if (kinora.view === "dashboard" && kinora.tab === "home") render();
+    }
+  } catch(e){ /* table not created yet — harmless */ }
 }
 
 function renderDashboard(){
@@ -1874,7 +1892,10 @@ function openSessionSheet(s){
   // TODO: connect live video + real reschedule/cancel (backend)
   $("#shJoin").addEventListener("click", () => alert("// TODO: launch the live video session."));
   $("#shResch").addEventListener("click", () => { closeSheet(); kinora.tab = "book"; kinora.book.step = 0; render(); });
-  $("#shCancel").addEventListener("click", () => { kinora.sessions = kinora.sessions.filter(x => x.id !== s.id); closeSheet(); render(); });
+  $("#shCancel").addEventListener("click", async () => {
+    if (SB && kinora.auth && String(s.id).length > 20){ try { await SB.from("bookings").delete().eq("id", s.id); } catch(e){} }
+    kinora.sessions = kinora.sessions.filter(x => x.id !== s.id); closeSheet(); render();
+  });
 }
 
 /* ----- Book tab: date/time -> coach -> confirm ----- */
@@ -1933,11 +1954,17 @@ function dashBook(body){
   const next = body.querySelector("#bookNext");
   if (next) next.addEventListener("click", () => { kinora.book.step++; render(); });
   const conf = body.querySelector("#bookConfirm");
-  if (conf) conf.addEventListener("click", () => {
-    // ---- add the booked session to in-memory state (POST-ready) ----
+  if (conf) conf.addEventListener("click", async () => {
     // TODO: connect Stripe — charge the session / decrement plan credits here
-    kinora.sessions.push({ id:"s" + Date.now(), coach:kinora.book.coach, date:kinora.book.date, time:kinora.book.time });
-    console.log("[Kinora] Session booked:", JSON.stringify(kinora.sessions.at(-1), null, 2));
+    const bk = { coach:kinora.book.coach, date:kinora.book.date, time:kinora.book.time };
+    if (SB && kinora.auth){                              // save to Supabase
+      try {
+        const { data } = await SB.from("bookings").insert({ coach:bk.coach, session_date:bk.date, session_time:bk.time }).select();
+        kinora.sessions.push({ id:(data && data[0] && data[0].id) || "s" + Date.now(), ...bk });
+      } catch(e){ kinora.sessions.push({ id:"s" + Date.now(), ...bk }); }
+    } else {
+      kinora.sessions.push({ id:"s" + Date.now(), ...bk });   // in-memory (demo / not signed in)
+    }
     kinora.book = { step:3, date:"", time:"", coach:"" };
     render();
   });
@@ -2001,6 +2028,7 @@ if (SB){
     const u = data && data.session && data.session.user;
     if (u){
       kinora.auth = { name:(u.user_metadata && u.user_metadata.full_name) || "", email:u.email, whatsapp:(u.user_metadata && u.user_metadata.whatsapp) || "", method:"email", mode:"login" };
+      loadBookings();
       if (kinora.view === "dashboard") render();
     }
   });
