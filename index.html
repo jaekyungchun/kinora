@@ -239,6 +239,26 @@
   .success{text-align:center;padding:10px 0}
   .success .ic{width:64px;height:64px;border-radius:50%;background:rgba(111,255,194,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
   .success p{color:var(--gray);margin-top:8px}
+  /* coach profile / detail modal */
+  .coach-meta .rev{color:var(--gray);font-size:12.5px}
+  .cp-top{display:flex;gap:15px;align-items:center;margin-bottom:18px}
+  .cp-av{width:66px;height:66px;border-radius:18px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:900;font-size:22px;color:#04130d}
+  .cp-name{font-family:var(--display);font-weight:900;font-size:19px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .cp-role{color:var(--gray);font-size:13.5px;margin-top:3px}
+  .cp-rating{color:var(--mint);font-weight:700;font-size:13.5px;margin-top:5px}
+  .cp-rating span{color:var(--gray);font-weight:500}
+  .cp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+  .cp-stats>div{background:rgba(255,255,255,.03);border:1px solid var(--line-2);border-radius:13px;padding:13px 8px;text-align:center}
+  .cp-stats b{display:block;font-family:var(--display);font-weight:900;font-size:17px;color:var(--mint)}
+  .cp-stats span{color:var(--gray);font-size:11px;margin-top:3px;display:block}
+  .cp-speaks{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+  .cp-h{font-weight:800;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mint);margin-bottom:8px}
+  .cp-bio{color:var(--gray);font-size:14px;line-height:1.6;margin-bottom:20px}
+  .cp-expect{list-style:none;padding:0;margin:0 0 22px;display:flex;flex-direction:column;gap:11px}
+  .cp-expect li{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+  .cp-expect li svg{flex:0 0 auto;margin-top:2px}
+  .cp-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--line-2);padding-top:18px}
+  .cp-foot .price .p{font-family:var(--display);font-weight:900;font-size:20px} .cp-foot .price .u{color:var(--gray);font-size:12.5px}
 
   .reveal{opacity:0;transform:translateY(28px)}
   .reveal.left{transform:translateX(-40px)} .reveal.right{transform:translateX(40px)} .reveal.scale{transform:scale(.94)}
@@ -459,15 +479,15 @@
   <div class="wrap">
     <div class="center reveal"><div class="eyebrow" data-i18n="any_eyebrow">One platform</div><h2 class="sec" data-i18n="any_title">Infinite possibilities</h2></div>
     <div class="uc-grid">
-      <div class="uc-card reveal scale">
+      <div class="uc-card reveal scale" style="cursor:pointer" onclick="openUC('uc2','uc2_d')">
         <img src="assets/uc-home.jpg" alt="Personal training at home" loading="lazy">
         <div class="cap"><div class="t" data-i18n="uc2">From Home</div><div class="d" data-i18n="uc2_d">Your living room becomes the studio.</div></div>
       </div>
-      <div class="uc-card reveal scale">
+      <div class="uc-card reveal scale" style="cursor:pointer" onclick="openUC('uc4','uc4_d')">
         <img src="assets/uc-outdoors.jpg" alt="Training outdoors at sunrise" loading="lazy">
         <div class="cap"><div class="t" data-i18n="uc4">Anywhere</div><div class="d" data-i18n="uc4_d">Hotel, park, on the road — just your phone.</div></div>
       </div>
-      <div class="uc-card reveal scale">
+      <div class="uc-card reveal scale" style="cursor:pointer" onclick="openUC('uc1','uc1_d')">
         <img src="assets/uc-strength.jpg" alt="Strength and conditioning session" loading="lazy">
         <div class="cap"><div class="t" data-i18n="uc1">Any Goal</div><div class="d" data-i18n="uc1_d">Strength, mobility, fat loss — coached live.</div></div>
       </div>
@@ -508,7 +528,7 @@
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p1_f1">Browse all coaches</span></li>
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p1_f2">Pay per session</span></li>
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p1_f3">In-app chat &amp; rescheduling</span></li>
-        </ul><button class="btn btn-ghost" data-i18n="choose">Choose plan</button>
+        </ul><button class="btn btn-ghost" data-i18n="choose" onclick="location.href=&#39;app.html&#39;">Choose plan</button>
       </div>
       <div class="tier feat reveal">
         <div class="tag" data-i18n="popular">Most popular</div>
@@ -519,7 +539,7 @@
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p2_f2">Progress &amp; goal tracking</span></li>
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p2_f3">Free coach-swapping</span></li>
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p2_f4">Priority booking</span></li>
-        </ul><button class="btn btn-primary mag" data-i18n="choose">Choose plan</button>
+        </ul><button class="btn btn-primary mag" data-i18n="choose" onclick="location.href=&#39;app.html&#39;">Choose plan</button>
       </div>
       <div class="tier reveal right">
         <h3 data-i18n="p3_name">Elite</h3><div class="amt">AED 599</div><div class="per" data-i18n="per_month">/ month</div>
@@ -529,7 +549,7 @@
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p3_f2">Everything in Member</span></li>
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p3_f3">Satisfaction guarantee</span></li>
           <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p3_f4">Dedicated support</span></li>
-        </ul><button class="btn btn-ghost" data-i18n="choose">Choose plan</button>
+        </ul><button class="btn btn-ghost" data-i18n="choose" onclick="location.href=&#39;app.html&#39;">Choose plan</button>
       </div>
     </div>
   </div>
@@ -614,13 +634,22 @@ const I18N = {
 };
 
 const COACHES = [
-  {name:"Omar Haddad",initials:"OH",spec:"sp_strength",rating:"4.9",price:"AED 180",langs:["AR","EN"],grad:"linear-gradient(135deg,#6FFFC2,#0E7A5F)"},
-  {name:"Sara Al-Rashid",initials:"SA",spec:"sp_yoga",rating:"5.0",price:"AED 160",langs:["AR","EN"],grad:"linear-gradient(135deg,#1faa7e,#6FFFC2)"},
-  {name:"Daniel Cohen",initials:"DC",spec:"sp_loss",rating:"4.8",price:"AED 150",langs:["EN"],grad:"linear-gradient(135deg,#8affd4,#0E7A5F)"},
-  {name:"Priya Nair",initials:"PN",spec:"sp_boxing",rating:"4.9",price:"AED 190",langs:["EN","HI"],grad:"linear-gradient(135deg,#0E7A5F,#6FFFC2)"},
-  {name:"Anna Volkova",initials:"AV",spec:"sp_prenatal",rating:"5.0",price:"AED 170",langs:["RU","EN"],grad:"linear-gradient(135deg,#6FFFC2,#1faa7e)"},
-  {name:"Liang Wei",initials:"LW",spec:"sp_rehab",rating:"4.7",price:"AED 185",langs:["ZH","EN"],grad:"linear-gradient(135deg,#3fd9a3,#0E7A5F)"}
+  {name:"Omar Haddad",initials:"OH",spec:"sp_strength",rating:"4.9",reviews:214,exp:8,sessions:1200,city:"Dubai",price:"AED 180",langs:["AR","EN"],grad:"linear-gradient(135deg,#6FFFC2,#0E7A5F)"},
+  {name:"Sara Al-Rashid",initials:"SA",spec:"sp_yoga",rating:"5.0",reviews:301,exp:6,sessions:980,city:"Abu Dhabi",price:"AED 160",langs:["AR","EN"],grad:"linear-gradient(135deg,#1faa7e,#6FFFC2)"},
+  {name:"Daniel Cohen",initials:"DC",spec:"sp_loss",rating:"4.8",reviews:156,exp:5,sessions:740,city:"Dubai",price:"AED 150",langs:["EN"],grad:"linear-gradient(135deg,#8affd4,#0E7A5F)"},
+  {name:"Priya Nair",initials:"PN",spec:"sp_boxing",rating:"4.9",reviews:189,exp:7,sessions:1050,city:"Dubai",price:"AED 190",langs:["EN","HI"],grad:"linear-gradient(135deg,#0E7A5F,#6FFFC2)"},
+  {name:"Anna Volkova",initials:"AV",spec:"sp_prenatal",rating:"5.0",reviews:242,exp:9,sessions:1400,city:"Abu Dhabi",price:"AED 170",langs:["RU","EN"],grad:"linear-gradient(135deg,#6FFFC2,#1faa7e)"},
+  {name:"Liang Wei",initials:"LW",spec:"sp_rehab",rating:"4.7",reviews:98,exp:4,sessions:520,city:"Sharjah",price:"AED 185",langs:["ZH","EN"],grad:"linear-gradient(135deg,#3fd9a3,#0E7A5F)"}
 ];
+/* coach-profile / detail-view strings (5 languages) */
+const CPROF = {
+  en:{view:"View profile",about:"About",expect:"What to expect",exp_l:"Years exp.",sess_l:"Sessions",rev_l:"reviews",book:"Book a session",e1:"A live 45-min video session, one-to-one",e2:"A plan personalised to your goal & level",e3:"Progress tracked and reviewed between sessions",bio:"{name} is a verified Kinora coach based in {city}, specialising in {spec} — {exp}+ years of experience and {sessions}+ live sessions delivered."},
+  ar:{view:"عرض الملف",about:"نبذة",expect:"ماذا تتوقع",exp_l:"سنوات خبرة",sess_l:"جلسات",rev_l:"تقييم",book:"احجز جلسة",e1:"جلسة فيديو مباشرة 45 دقيقة، فردية",e2:"خطة مخصّصة لهدفك ومستواك",e3:"متابعة التقدّم ومراجعته بين الجلسات",bio:"{name} مدرب معتمد في كينورا مقيم في {city}، متخصّص في {spec} — أكثر من {exp} سنوات خبرة و{sessions}+ جلسة مباشرة."},
+  zh:{view:"查看资料",about:"简介",expect:"课程内容",exp_l:"年经验",sess_l:"课程数",rev_l:"条评价",book:"预约课程",e1:"45 分钟一对一实时视频课程",e2:"针对你目标与水平的定制计划",e3:"课程之间跟踪并回顾进度",bio:"{name} 是 Kinora 认证教练，常驻{city}，专注于{spec}——超过 {exp} 年经验，已完成 {sessions}+ 次实时课程。"},
+  ru:{view:"Открыть профиль",about:"О тренере",expect:"Что вас ждёт",exp_l:"лет опыта",sess_l:"сессий",rev_l:"отзывов",book:"Записаться",e1:"Живая видеосессия 45 мин, один на один",e2:"План под вашу цель и уровень",e3:"Прогресс отслеживается между сессиями",bio:"{name} — проверенный тренер Kinora из города {city}, специализация: {spec}. Более {exp} лет опыта и {sessions}+ проведённых живых сессий."},
+  ko:{view:"프로필 보기",about:"소개",expect:"세션 구성",exp_l:"년 경력",sess_l:"세션",rev_l:"리뷰",book:"세션 예약",e1:"1:1 실시간 45분 영상 세션",e2:"목표와 수준에 맞춘 맞춤 플랜",e3:"세션 사이 진행 상황 추적·리뷰",bio:"{name}은(는) {city} 기반의 Kinora 인증 코치로, {spec} 전문이며 {exp}년 이상 경력과 {sessions}회 이상의 실시간 세션 경험이 있어요."}
+};
+function tp(k){return (CPROF[LANG]&&CPROF[LANG][k])||CPROF.en[k]||k;}
 
 let LANG="en";
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -629,13 +658,13 @@ function go(id){document.getElementById(id).scrollIntoView();}
 
 function renderCoaches(){
   document.getElementById("coachGrid").innerHTML = COACHES.map((c,i)=>`
-    <div class="coach reveal scale tilt" style="transition-delay:${i*55}ms">
+    <div class="coach reveal scale tilt" style="transition-delay:${i*55}ms;cursor:pointer" onclick="openCoach(${i})" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openCoach(${i})">
       <div class="coach-top"><div class="coach-av" style="background:${c.grad}">${c.initials}</div>
         <div><div class="coach-name">${c.name} <span class="badge">✓ ${t('verified')}</span></div><div class="coach-role">${t(c.spec)}</div></div></div>
-      <div class="coach-meta"><span class="stars">★ ${c.rating}</span></div>
+      <div class="coach-meta"><span class="stars">★ ${c.rating}</span> <span class="rev">· ${c.reviews} ${tp('rev_l')}</span></div>
       <div class="speaks">${c.langs.map(l=>`<span class="lang-chip">${l}</span>`).join("")}</div>
       <div class="coach-foot"><div class="price"><span class="p">${c.price}</span> <span class="u">${t('per_session')}</span></div>
-        <button class="btn btn-primary btn-sm" onclick="openModal('book',${i})">${t('book')}</button></div>
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openCoach(${i})">${tp('view')}</button></div>
     </div>`).join("");
   bindTilt(); observeReveal();
 }
@@ -700,6 +729,45 @@ function openModal(type,idx){
 }
 function closeModal(){overlay.classList.remove("open");}
 overlay.addEventListener("click",e=>{if(e.target===overlay)closeModal();});
+
+/* coach profile detail view */
+function openCoach(i){
+  const c=COACHES[i];
+  const bio=tp('bio').replace("{name}",c.name).replace("{city}",c.city).replace("{spec}",t(c.spec)).replace("{exp}",c.exp).replace("{sessions}",c.sessions.toLocaleString());
+  modalBody.innerHTML=`<div class="cp">
+    <div class="cp-top"><div class="cp-av" style="background:${c.grad}">${c.initials}</div>
+      <div><div class="cp-name">${c.name} <span class="badge">✓ ${t('verified')}</span></div>
+        <div class="cp-role">${t(c.spec)} · ${c.city}</div>
+        <div class="cp-rating">★ ${c.rating} <span>· ${c.reviews} ${tp('rev_l')}</span></div></div></div>
+    <div class="cp-stats">
+      <div><b>${c.exp}+</b><span>${tp('exp_l')}</span></div>
+      <div><b>${c.sessions.toLocaleString()}+</b><span>${tp('sess_l')}</span></div>
+      <div><b>★ ${c.rating}</b><span>${c.reviews} ${tp('rev_l')}</span></div></div>
+    <div class="cp-speaks">${c.langs.map(l=>`<span class="lang-chip">${l}</span>`).join("")}</div>
+    <div class="cp-h">${tp('about')}</div><p class="cp-bio">${bio}</p>
+    <div class="cp-h">${tp('expect')}</div>
+    <ul class="cp-expect">
+      <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>${tp('e1')}</li>
+      <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>${tp('e2')}</li>
+      <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>${tp('e3')}</li>
+    </ul>
+    <div class="cp-foot"><div class="price"><span class="p">${c.price}</span> <span class="u">${t('per_session')}</span></div>
+      <button class="btn btn-primary" onclick="openModal('book',${i})">${tp('book')}</button></div>
+  </div>`;
+  overlay.classList.add("open");
+}
+
+/* use-case detail view */
+function openUC(tk,dk){
+  modalBody.innerHTML=`<div class="cp"><h3>${t(tk)}</h3><p class="cp-bio" style="margin-top:8px">${t(dk)}</p>
+    <ul class="cp-expect">
+      <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>${tp('e1')}</li>
+      <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>${tp('e2')}</li>
+      <li><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>${tp('e3')}</li>
+    </ul>
+    <button class="btn btn-primary" style="width:100%" onclick="location.href='app.html'">${t('cta_start')}</button></div>`;
+  overlay.classList.add("open");
+}
 function successView(a,b){modalBody.innerHTML=`<div class="success"><div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>${a}</h3><p>${b}</p><button class="btn btn-ghost" style="margin-top:22px" onclick="closeModal()">OK</button></div>`;}
 
 /* Submit via fetch so the user stays on-page; falls back to normal POST if JS/network hiccups */
