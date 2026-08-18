@@ -1578,10 +1578,26 @@ function renderPaywall(){
   // change display currency (top-10 Stripe presentment currencies)
   wrap.querySelectorAll("[data-cur]").forEach(btn =>
     btn.addEventListener("click", () => { kinora.currency = btn.dataset.cur; render(); }));
-  // GET MY PLAN (top + bottom) -> signup
-  // TODO: connect Stripe — create a Checkout Session / Payment Element with the
-  // selected plan (kinora.plan) + method (kinora.payMethod: card|apple|google|link)
-  const go = () => { console.log("[Kinora] Plan:", kinora.plan, "· method:", kinora.payMethod); kinora.view = "auth"; kinora.authMode = "signup"; render(); };
+  // GET MY PLAN (top + bottom)
+  const go = async () => {
+    const cfg = window.KINORA_CONFIG || {};
+    // real Stripe Checkout when enabled (secret key lives in the Edge Function)
+    if (cfg.STRIPE_ENABLED && cfg.SUPABASE_URL){
+      try {
+        const res = await fetch(`${cfg.SUPABASE_URL}/functions/v1/create-checkout`, {
+          method:"POST",
+          headers:{ "Content-Type":"application/json", "Authorization":`Bearer ${cfg.SUPABASE_ANON_KEY}` },
+          body: JSON.stringify({ plan:kinora.plan, currency:kinora.currency, discount:true, email: kinora.auth && kinora.auth.email })
+        });
+        const j = await res.json();
+        if (j.url){ window.location.href = j.url; return; }   // -> Stripe Checkout
+        console.warn("[Kinora] checkout error:", j.error);
+      } catch(e){ console.warn("[Kinora] checkout failed:", e); }
+    }
+    // fallback / not enabled -> signup flow
+    console.log("[Kinora] Plan:", kinora.plan, "· method:", kinora.payMethod);
+    kinora.view = "auth"; kinora.authMode = "signup"; render();
+  };
   wrap.querySelector("#getTop").addEventListener("click", go);
   wrap.querySelector("#getBottom").addEventListener("click", go);
 }
@@ -2020,6 +2036,14 @@ function dashAccount(body){
 }
 
 /* ---------- init ---------- */
+// returning from Stripe Checkout?  ?checkout=success | cancel
+(function(){
+  const cp = new URLSearchParams(location.search).get("checkout");
+  if (cp){
+    history.replaceState(null, "", location.pathname);       // tidy the URL
+    if (cp === "success"){ kinora.view = "dashboard"; kinora.tab = "home"; }
+  }
+})();
 setLang("en");
 
 /* restore an existing Supabase session (so Account shows the real user) */

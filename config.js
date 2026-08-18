@@ -8,5 +8,8 @@
    ============================================================ */
 window.KINORA_CONFIG = {
   SUPABASE_URL: "https://liogdrivueybgbbnydsg.supabase.co",
-  SUPABASE_ANON_KEY: "sb_publishable_Fj1bvcD4oDE6MCZtQV4vwA_NlJQQPqc"
+  SUPABASE_ANON_KEY: "sb_publishable_Fj1bvcD4oDE6MCZtQV4vwA_NlJQQPqc",
+  // Flip to true AFTER you deploy the "create-checkout" Edge Function + set STRIPE_SECRET_KEY.
+  // Until then, "Get my plan" continues to the signup flow (no checkout).
+  STRIPE_ENABLED: false
 };
