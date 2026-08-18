@@ -259,6 +259,19 @@
   .cp-expect li svg{flex:0 0 auto;margin-top:2px}
   .cp-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--line-2);padding-top:18px}
   .cp-foot .price .p{font-family:var(--display);font-weight:900;font-size:20px} .cp-foot .price .u{color:var(--gray);font-size:12.5px}
+  /* landing currency selector */
+  .cur-select{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto 26px}
+  .cur-label{color:var(--gray);font-size:14px}
+  .cur-dd{position:relative}
+  .cur-dd summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--line-2);border-radius:100px;padding:9px 16px;font-weight:800;font-size:14px;color:var(--white,#F4F8F6)}
+  .cur-dd summary::-webkit-details-marker{display:none} .cur-dd summary::marker{content:""}
+  .cur-dd[open] summary{border-color:var(--mint)}
+  .cur-dd .chev{color:var(--gray);font-size:10px}
+  .cur-menu{position:absolute;top:50px;left:50%;transform:translateX(-50%);background:#0d1712;border:1px solid var(--line);border-radius:14px;padding:6px;width:min(290px,90vw);max-height:340px;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.6);z-index:60}
+  .cur-item{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;color:var(--white,#F4F8F6);padding:10px 11px;border-radius:9px;cursor:pointer;text-align:start;font-size:14px}
+  .cur-item:hover{background:rgba(111,255,194,.08)} .cur-item.on{background:rgba(111,255,194,.12)}
+  .cur-item b{min-width:40px} .cur-item .cn{color:var(--gray);flex:1;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .cur-item .cv{color:var(--gray);font-size:12px}
+  .cur-item.on b,.cur-item.on .cv{color:var(--mint)}
 
   .reveal{opacity:0;transform:translateY(28px)}
   .reveal.left{transform:translateX(-40px)} .reveal.right{transform:translateX(40px)} .reveal.scale{transform:scale(.94)}
@@ -520,38 +533,14 @@
 <section class="block" id="pricing" style="padding-top:20px">
   <div class="wrap">
     <div class="center reveal"><div class="eyebrow" data-i18n="pricing_eyebrow">Membership</div><h2 class="sec" data-i18n="pricing_title">Simple, flexible pricing</h2><p class="sec-sub" data-i18n="pricing_sub">No contracts. Cancel anytime.</p></div>
-    <div class="tiers">
-      <div class="tier reveal left">
-        <h3 data-i18n="p1_name">Pay as you go</h3><div class="amt">AED 0</div><div class="per" data-i18n="per_month">/ month</div>
-        <p class="desc" data-i18n="p1_d">Book single sessions at standard rates. No commitment.</p>
-        <ul>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p1_f1">Browse all coaches</span></li>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p1_f2">Pay per session</span></li>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p1_f3">In-app chat &amp; rescheduling</span></li>
-        </ul><button class="btn btn-ghost" data-i18n="choose" onclick="location.href=&#39;app.html&#39;">Choose plan</button>
-      </div>
-      <div class="tier feat reveal">
-        <div class="tag" data-i18n="popular">Most popular</div>
-        <h3 data-i18n="p2_name">Member</h3><div class="amt">AED 99</div><div class="per" data-i18n="per_month">/ month</div>
-        <p class="desc" data-i18n="p2_d">Discounted sessions plus progress tracking.</p>
-        <ul>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p2_f1">10% off every session</span></li>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p2_f2">Progress &amp; goal tracking</span></li>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p2_f3">Free coach-swapping</span></li>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p2_f4">Priority booking</span></li>
-        </ul><button class="btn btn-primary mag" data-i18n="choose" onclick="location.href=&#39;app.html&#39;">Choose plan</button>
-      </div>
-      <div class="tier reveal right">
-        <h3 data-i18n="p3_name">Elite</h3><div class="amt">AED 599</div><div class="per" data-i18n="per_month">/ month</div>
-        <p class="desc" data-i18n="p3_d">4 sessions included, best value per session.</p>
-        <ul>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p3_f1">4 sessions / month included</span></li>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p3_f2">Everything in Member</span></li>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p3_f3">Satisfaction guarantee</span></li>
-          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="p3_f4">Dedicated support</span></li>
-        </ul><button class="btn btn-ghost" data-i18n="choose" onclick="location.href=&#39;app.html&#39;">Choose plan</button>
-      </div>
+    <div class="cur-select reveal">
+      <span class="cur-label" id="curLabel">Prices in</span>
+      <details class="cur-dd" id="curDD">
+        <summary><span id="curFlag">🇦🇪</span> <span id="curCode">AED</span> <span class="chev">▾</span></summary>
+        <div class="cur-menu" id="curMenu"></div>
+      </details>
     </div>
+    <div class="tiers" id="tierGrid"></div>
   </div>
 </section>
 
@@ -656,6 +645,59 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 function t(k){return (I18N[LANG]&&I18N[LANG][k])||I18N.en[k]||k;}
 function go(id){document.getElementById(id).scrollIntoView();}
 
+/* ===== pricing + multi-currency (single source of truth, mirrors the funnel) ===== */
+function ld(d){return (d&&(d[LANG]??d.en))||"";}
+const CURRENCIES={
+  AED:{sym:"AED",rate:1,round:1,name:"UAE Dirham",flag:"🇦🇪",pre:true},
+  USD:{sym:"$",rate:0.272,round:1,name:"US Dollar",flag:"🇺🇸",pre:true},
+  EUR:{sym:"€",rate:0.25,round:1,name:"Euro",flag:"🇪🇺",pre:true},
+  GBP:{sym:"£",rate:0.214,round:1,name:"British Pound",flag:"🇬🇧",pre:true},
+  KRW:{sym:"₩",rate:377,round:100,name:"Korean Won",flag:"🇰🇷",pre:true},
+  SAR:{sym:"SAR",rate:1.02,round:1,name:"Saudi Riyal",flag:"🇸🇦",pre:true},
+  JPY:{sym:"¥",rate:42,round:10,name:"Japanese Yen",flag:"🇯🇵",pre:true},
+  INR:{sym:"₹",rate:22.8,round:1,name:"Indian Rupee",flag:"🇮🇳",pre:true},
+  CNY:{sym:"¥",rate:1.97,round:1,name:"Chinese Yuan",flag:"🇨🇳",pre:true},
+  CAD:{sym:"C$",rate:0.378,round:1,name:"Canadian Dollar",flag:"🇨🇦",pre:true}
+};
+const CUR_LABEL={en:"Prices in",ar:"الأسعار بـ",zh:"价格货币",ru:"Цены в",ko:"표시 통화"};
+let CUR="AED";
+function fmtIn(aed,code){const c=CURRENCIES[code]||CURRENCIES.AED;let v=aed*c.rate;v=c.round>1?Math.round(v/c.round)*c.round:Math.round(v);const s=v.toLocaleString("en-US");return c.pre?c.sym+" "+s:s+" "+c.sym;}
+function fmtP(aed){return fmtIn(aed,CUR);}
+const LTIERS=[
+  {id:"payg",price:149,unit:"per_session",pop:false,
+    name:{en:"Pay-per-session",ar:"الدفع لكل جلسة",zh:"按次付费",ru:"Оплата за сессию",ko:"세션별 결제"},
+    desc:{en:"No commitment. Book single live sessions whenever you want.",ar:"بدون التزام. احجز جلسات مباشرة مفردة متى شئت.",zh:"无需承诺。随时预约单次实时课程。",ru:"Без обязательств. Разовые живые сессии когда угодно.",ko:"약정 없이 원할 때 단일 실시간 세션을 예약하세요."},
+    feats:[{en:"Book any verified coach",ar:"احجز أي مدرب موثّق",zh:"预约任意认证教练",ru:"Любой проверенный тренер",ko:"인증 코치 자유 예약"},{en:"45-min live video sessions",ar:"جلسات فيديو مباشرة 45 دقيقة",zh:"45 分钟实时视频课程",ru:"Живые видеосессии 45 мин",ko:"45분 실시간 영상 세션"},{en:"In-app chat & rescheduling",ar:"محادثة وإعادة جدولة داخل التطبيق",zh:"应用内聊天与改期",ru:"Чат и перенос в приложении",ko:"앱 내 채팅·일정 변경"},{en:"Pay only for what you book",ar:"ادفع فقط لما تحجزه",zh:"仅为所约课程付费",ru:"Платите только за забронированное",ko:"예약한 만큼만 결제"}]},
+  {id:"member",price:449,unit:"per_month",pop:true,
+    name:{en:"Member",ar:"عضو",zh:"会员",ru:"Участник",ko:"멤버"},
+    desc:{en:"4 live sessions a month, priority booking, and progress tracking.",ar:"4 جلسات مباشرة شهرياً، حجز بأولوية، وتتبّع للتقدّم.",zh:"每月 4 次实时课程，优先预约与进度追踪。",ru:"4 живые сессии в месяц, приоритет и отслеживание прогресса.",ko:"매월 4회 실시간 세션, 우선 예약, 진행 추적."},
+    feats:[{en:"4 live sessions / month included",ar:"4 جلسات مباشرة شهرياً",zh:"每月含 4 次实时课程",ru:"4 живые сессии в месяц включены",ko:"매월 4회 실시간 세션 포함"},{en:"Priority booking",ar:"حجز بأولوية",zh:"优先预约",ru:"Приоритетная запись",ko:"우선 예약"},{en:"In-app progress tracking",ar:"تتبّع التقدّم داخل التطبيق",zh:"应用内进度追踪",ru:"Отслеживание прогресса",ko:"앱 내 진행 추적"},{en:"Cancel anytime",ar:"ألغِ في أي وقت",zh:"随时取消",ru:"Отмена в любой момент",ko:"언제든 해지"}]},
+  {id:"elite",price:899,unit:"per_month",pop:false,
+    name:{en:"Elite",ar:"النخبة",zh:"精英",ru:"Элита",ko:"엘리트"},
+    desc:{en:"8 live sessions a month with a dedicated coach and monthly reviews.",ar:"8 جلسات مباشرة شهرياً مع مدرب مخصّص ومراجعات شهرية.",zh:"每月 8 次实时课程，专属教练与每月复盘。",ru:"8 живых сессий в месяц с личным тренером и ежемесячным разбором.",ko:"매월 8회 실시간 세션, 전담 코치와 월간 리뷰."},
+    feats:[{en:"8 live sessions / month included",ar:"8 جلسات مباشرة شهرياً",zh:"每月含 8 次实时课程",ru:"8 живых сессий в месяц включены",ko:"매월 8회 실시간 세션 포함"},{en:"Dedicated coach match",ar:"مطابقة مدرب مخصّص",zh:"专属教练匹配",ru:"Персональный подбор тренера",ko:"전담 코치 매칭"},{en:"Priority scheduling",ar:"جدولة بأولوية",zh:"优先排期",ru:"Приоритетное расписание",ko:"우선 일정 예약"},{en:"Monthly progress review",ar:"مراجعة تقدّم شهرية",zh:"每月进度复盘",ru:"Ежемесячный разбор прогресса",ko:"월간 진행 리뷰"},{en:"Everything in Member",ar:"كل مزايا العضو",zh:"包含会员全部权益",ru:"Всё из «Участник»",ko:"멤버 혜택 전부 포함"}]}
+];
+const CKSVG='<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4 10-10" stroke="#6FFFC2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function renderPricing(){
+  const grid=document.getElementById("tierGrid");if(!grid)return;
+  const unit={per_session:t('per_session'),per_month:t('per_month')};
+  grid.innerHTML=LTIERS.map((tr,i)=>`
+    <div class="tier ${tr.pop?'feat':''} reveal ${i===0?'left':i===2?'right':''}">
+      ${tr.pop?`<div class="tag">${t('popular')}</div>`:''}
+      <h3>${ld(tr.name)}</h3><div class="amt">${fmtP(Number(tr.price))}</div><div class="per">${unit[tr.unit]}</div>
+      <p class="desc">${ld(tr.desc)}</p>
+      <ul>${tr.feats.map(f=>`<li>${CKSVG}<span>${ld(f)}</span></li>`).join('')}</ul>
+      <button class="btn ${tr.pop?'btn-primary mag':'btn-ghost'}" onclick="location.href='app.html'">${t('choose')}</button>
+    </div>`).join('');
+  observeReveal();
+}
+function renderCurMenu(){
+  const menu=document.getElementById("curMenu");if(!menu)return;
+  menu.innerHTML=Object.keys(CURRENCIES).map(code=>{const c=CURRENCIES[code];return `<button class="cur-item${CUR===code?' on':''}" data-cur="${code}"><span class="flag">${c.flag}</span><b>${code}</b><span class="cn">${c.name}</span><span class="cv">${fmtIn(449,code)}</span></button>`;}).join('');
+  menu.querySelectorAll("[data-cur]").forEach(b=>b.addEventListener("click",()=>{CUR=b.dataset.cur;document.getElementById("curFlag").textContent=CURRENCIES[CUR].flag;document.getElementById("curCode").textContent=CUR;const dd=document.getElementById("curDD");if(dd)dd.open=false;renderPricing();renderCurMenu();}));
+}
+function applyPricingLang(){const cl=document.getElementById("curLabel");if(cl)cl.textContent=CUR_LABEL[LANG]||CUR_LABEL.en;renderPricing();renderCurMenu();}
+
 function renderCoaches(){
   document.getElementById("coachGrid").innerHTML = COACHES.map((c,i)=>`
     <div class="coach reveal scale tilt" style="transition-delay:${i*55}ms;cursor:pointer" onclick="openCoach(${i})" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openCoach(${i})">
@@ -677,6 +719,7 @@ function applyLang(lang){
   document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.getAttribute("data-i18n");if(I18N[lang][k]!==undefined)el.textContent=I18N[lang][k];});
   document.querySelectorAll(".lang-item").forEach(it=>it.classList.toggle("active",it.dataset.lang===lang));
   renderCoaches();
+  applyPricingLang();
 }
 
 const langBtn=document.getElementById("langBtn"),langMenu=document.getElementById("langMenu");
