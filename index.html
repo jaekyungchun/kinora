@@ -272,6 +272,19 @@
   .cur-item:hover{background:rgba(111,255,194,.08)} .cur-item.on{background:rgba(111,255,194,.12)}
   .cur-item b{min-width:40px} .cur-item .cn{color:var(--gray);flex:1;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .cur-item .cv{color:var(--gray);font-size:12px}
   .cur-item.on b,.cur-item.on .cv{color:var(--mint)}
+  /* coach marketplace filters */
+  .coach-filters{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:920px;margin:0 auto 14px}
+  .cf-search{position:relative;flex:1 1 240px;min-width:200px}
+  .cf-search svg{position:absolute;top:50%;transform:translateY(-50%);inset-inline-start:14px;color:var(--gray);pointer-events:none}
+  .cf-search input{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--line-2);border-radius:100px;padding:11px 16px 11px 42px;color:var(--white,#F4F8F6);font-size:14px;font-family:inherit}
+  html[dir="rtl"] .cf-search input{padding:11px 42px 11px 16px}
+  .cf-search input:focus{outline:none;border-color:var(--mint)}
+  .cf-sel{background:rgba(255,255,255,.03);border:1px solid var(--line-2);border-radius:100px;padding:11px 34px 11px 16px;color:var(--white,#F4F8F6);font-size:14px;cursor:pointer;font-family:inherit;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none'><path d='M6 9l6 6 6-6' stroke='%2393a39b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 13px center}
+  html[dir="rtl"] .cf-sel{padding:11px 16px 11px 34px;background-position:left 13px center}
+  .cf-sel:focus{outline:none;border-color:var(--mint)}
+  .cf-sel option{background:#0d1712;color:#F4F8F6}
+  .coach-count{text-align:center;color:var(--gray);font-size:13px;margin-bottom:20px}
+  .coach-none{grid-column:1/-1;text-align:center;color:var(--gray);padding:44px 20px;font-size:15px}
 
   .reveal{opacity:0;transform:translateY(28px)}
   .reveal.left{transform:translateX(-40px)} .reveal.right{transform:translateX(40px)} .reveal.scale{transform:scale(.94)}
@@ -483,6 +496,17 @@
 <section class="block" id="coaches" style="padding-top:30px">
   <div class="wrap">
     <div class="center reveal"><div class="eyebrow" data-i18n="coaches_eyebrow">Meet the coaches</div><h2 class="sec" data-i18n="coaches_title">Meet our top coaches</h2><p class="sec-sub" data-i18n="coaches_sub">Verified, insured, and ready when you are.</p></div>
+    <div class="coach-filters reveal">
+      <div class="cf-search">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.2-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="coachSearch" type="text" autocomplete="off">
+      </div>
+      <select id="fSpec" class="cf-sel"></select>
+      <select id="fLang" class="cf-sel"></select>
+      <select id="fCity" class="cf-sel"></select>
+      <select id="fSort" class="cf-sel"></select>
+    </div>
+    <div class="coach-count" id="coachCount"></div>
     <div class="coach-grid" id="coachGrid"></div>
   </div>
 </section>
@@ -628,8 +652,23 @@ const COACHES = [
   {name:"Daniel Cohen",initials:"DC",spec:"sp_loss",rating:"4.8",reviews:156,exp:5,sessions:740,city:"Dubai",price:"AED 150",langs:["EN"],grad:"linear-gradient(135deg,#8affd4,#0E7A5F)"},
   {name:"Priya Nair",initials:"PN",spec:"sp_boxing",rating:"4.9",reviews:189,exp:7,sessions:1050,city:"Dubai",price:"AED 190",langs:["EN","HI"],grad:"linear-gradient(135deg,#0E7A5F,#6FFFC2)"},
   {name:"Anna Volkova",initials:"AV",spec:"sp_prenatal",rating:"5.0",reviews:242,exp:9,sessions:1400,city:"Abu Dhabi",price:"AED 170",langs:["RU","EN"],grad:"linear-gradient(135deg,#6FFFC2,#1faa7e)"},
-  {name:"Liang Wei",initials:"LW",spec:"sp_rehab",rating:"4.7",reviews:98,exp:4,sessions:520,city:"Sharjah",price:"AED 185",langs:["ZH","EN"],grad:"linear-gradient(135deg,#3fd9a3,#0E7A5F)"}
+  {name:"Liang Wei",initials:"LW",spec:"sp_rehab",rating:"4.7",reviews:98,exp:4,sessions:520,city:"Sharjah",price:"AED 185",langs:["ZH","EN"],grad:"linear-gradient(135deg,#3fd9a3,#0E7A5F)"},
+  {name:"Marco Rossi",initials:"MR",spec:"sp_strength",rating:"4.8",reviews:167,exp:6,sessions:860,city:"Dubai",price:"AED 175",langs:["EN","IT"],grad:"linear-gradient(135deg,#6FFFC2,#0E7A5F)"},
+  {name:"Yuki Tanaka",initials:"YT",spec:"sp_yoga",rating:"4.9",reviews:203,exp:7,sessions:1120,city:"Sharjah",price:"AED 155",langs:["EN","JA"],grad:"linear-gradient(135deg,#1faa7e,#6FFFC2)"},
+  {name:"Fatima Zahra",initials:"FZ",spec:"sp_loss",rating:"5.0",reviews:278,exp:8,sessions:1310,city:"Abu Dhabi",price:"AED 165",langs:["AR","FR","EN"],grad:"linear-gradient(135deg,#8affd4,#0E7A5F)"},
+  {name:"Jin-woo Park",initials:"JP",spec:"sp_boxing",rating:"4.7",reviews:121,exp:5,sessions:640,city:"Dubai",price:"AED 195",langs:["KO","EN"],grad:"linear-gradient(135deg,#0E7A5F,#6FFFC2)"},
+  {name:"Elena Petrova",initials:"EP",spec:"sp_rehab",rating:"4.9",reviews:194,exp:10,sessions:1520,city:"Dubai",price:"AED 200",langs:["RU","EN"],grad:"linear-gradient(135deg,#6FFFC2,#1faa7e)"},
+  {name:"Aisha Khan",initials:"AK",spec:"sp_prenatal",rating:"5.0",reviews:231,exp:6,sessions:900,city:"Sharjah",price:"AED 160",langs:["EN","HI","AR"],grad:"linear-gradient(135deg,#3fd9a3,#0E7A5F)"}
 ];
+/* coach-marketplace filter strings (5 languages) */
+const CFILTER = {
+  en:{search:"Search coaches…",allspec:"All specialties",alllang:"All languages",allcity:"All cities",s_rating:"Top rated",s_plo:"Price: low to high",s_phi:"Price: high to low",none:"No coaches match — try clearing filters.",count:"{n} coaches"},
+  ar:{search:"ابحث عن مدرب…",allspec:"كل التخصصات",alllang:"كل اللغات",allcity:"كل المدن",s_rating:"الأعلى تقييماً",s_plo:"السعر: تصاعدي",s_phi:"السعر: تنازلي",none:"لا مدربين مطابقين — جرّب مسح عوامل التصفية.",count:"{n} مدرب"},
+  zh:{search:"搜索教练…",allspec:"所有专长",alllang:"所有语言",allcity:"所有城市",s_rating:"评分最高",s_plo:"价格：从低到高",s_phi:"价格：从高到低",none:"没有匹配的教练——试试清除筛选。",count:"{n} 位教练"},
+  ru:{search:"Поиск тренера…",allspec:"Все специализации",alllang:"Все языки",allcity:"Все города",s_rating:"По рейтингу",s_plo:"Цена: по возрастанию",s_phi:"Цена: по убыванию",none:"Нет подходящих тренеров — сбросьте фильтры.",count:"Тренеров: {n}"},
+  ko:{search:"코치 검색…",allspec:"모든 전문 분야",alllang:"모든 언어",allcity:"모든 도시",s_rating:"평점 높은순",s_plo:"가격: 낮은순",s_phi:"가격: 높은순",none:"조건에 맞는 코치가 없어요.",count:"코치 {n}명"}
+};
+function tf(k){return (CFILTER[LANG]&&CFILTER[LANG][k])||CFILTER.en[k]||k;}
 /* coach-profile / detail-view strings (5 languages) */
 const CPROF = {
   en:{view:"View profile",about:"About",expect:"What to expect",exp_l:"Years exp.",sess_l:"Sessions",rev_l:"reviews",book:"Book a session",e1:"A live 45-min video session, one-to-one",e2:"A plan personalised to your goal & level",e3:"Progress tracked and reviewed between sessions",bio:"{name} is a verified Kinora coach based in {city}, specialising in {spec} — {exp}+ years of experience and {sessions}+ live sessions delivered."},
@@ -698,17 +737,49 @@ function renderCurMenu(){
 }
 function applyPricingLang(){const cl=document.getElementById("curLabel");if(cl)cl.textContent=CUR_LABEL[LANG]||CUR_LABEL.en;renderPricing();renderCurMenu();}
 
+/* populate the filter dropdowns (localized), preserving current selections */
+function coachOpts(){
+  const specs=[...new Set(COACHES.map(c=>c.spec))];
+  const langs=[...new Set(COACHES.flatMap(c=>c.langs))].sort();
+  const cities=[...new Set(COACHES.map(c=>c.city))];
+  const set=(id,html,val)=>{const el=document.getElementById(id);if(!el)return;el.innerHTML=html;el.value=val;};
+  const cur=id=>document.getElementById(id)?document.getElementById(id).value:"";
+  set('fSpec',`<option value="">${tf('allspec')}</option>`+specs.map(s=>`<option value="${s}">${t(s)}</option>`).join(''),cur('fSpec'));
+  set('fLang',`<option value="">${tf('alllang')}</option>`+langs.map(l=>`<option value="${l}">${l}</option>`).join(''),cur('fLang'));
+  set('fCity',`<option value="">${tf('allcity')}</option>`+cities.map(c=>`<option value="${c}">${c}</option>`).join(''),cur('fCity'));
+  set('fSort',`<option value="rating">${tf('s_rating')}</option><option value="price_lo">${tf('s_plo')}</option><option value="price_hi">${tf('s_phi')}</option>`,cur('fSort')||'rating');
+  const s=document.getElementById('coachSearch');if(s)s.placeholder=tf('search');
+}
+
 function renderCoaches(){
-  document.getElementById("coachGrid").innerHTML = COACHES.map((c,i)=>`
-    <div class="coach reveal scale tilt" style="transition-delay:${i*55}ms;cursor:pointer" onclick="openCoach(${i})" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openCoach(${i})">
+  const grid=document.getElementById("coachGrid");if(!grid)return;
+  const q=(document.getElementById('coachSearch')?.value||'').trim().toLowerCase();
+  const fs=document.getElementById('fSpec')?.value||'',fl=document.getElementById('fLang')?.value||'',fc=document.getElementById('fCity')?.value||'',sort=document.getElementById('fSort')?.value||'rating';
+  const pn=c=>Number(String(c.price).replace(/[^0-9]/g,''));
+  let list=COACHES.map((c,i)=>({c,i})).filter(({c})=>
+    (!q||c.name.toLowerCase().includes(q)||t(c.spec).toLowerCase().includes(q)||c.city.toLowerCase().includes(q)) &&
+    (!fs||c.spec===fs) && (!fl||c.langs.includes(fl)) && (!fc||c.city===fc));
+  if(sort==='price_lo')list.sort((a,b)=>pn(a.c)-pn(b.c));
+  else if(sort==='price_hi')list.sort((a,b)=>pn(b.c)-pn(a.c));
+  else list.sort((a,b)=>Number(b.c.rating)-Number(a.c.rating));
+  const cnt=document.getElementById('coachCount');if(cnt)cnt.textContent=tf('count').replace('{n}',list.length);
+  grid.innerHTML = list.length ? list.map(({c,i},k)=>`
+    <div class="coach reveal scale tilt" style="transition-delay:${k*40}ms;cursor:pointer" onclick="openCoach(${i})" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openCoach(${i})">
       <div class="coach-top"><div class="coach-av" style="background:${c.grad}">${c.initials}</div>
-        <div><div class="coach-name">${c.name} <span class="badge">✓ ${t('verified')}</span></div><div class="coach-role">${t(c.spec)}</div></div></div>
+        <div><div class="coach-name">${c.name} <span class="badge">✓ ${t('verified')}</span></div><div class="coach-role">${t(c.spec)} · ${c.city}</div></div></div>
       <div class="coach-meta"><span class="stars">★ ${c.rating}</span> <span class="rev">· ${c.reviews} ${tp('rev_l')}</span></div>
       <div class="speaks">${c.langs.map(l=>`<span class="lang-chip">${l}</span>`).join("")}</div>
       <div class="coach-foot"><div class="price"><span class="p">${c.price}</span> <span class="u">${t('per_session')}</span></div>
         <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openCoach(${i})">${tp('view')}</button></div>
-    </div>`).join("");
+    </div>`).join("") : `<div class="coach-none">${tf('none')}</div>`;
   bindTilt(); observeReveal();
+}
+
+let coachFiltersBound=false;
+function initCoachFilters(){
+  if(coachFiltersBound)return; coachFiltersBound=true;
+  ['fSpec','fLang','fCity','fSort'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('change',renderCoaches);});
+  const s=document.getElementById('coachSearch');if(s)s.addEventListener('input',renderCoaches);
 }
 
 function applyLang(lang){
@@ -718,7 +789,9 @@ function applyLang(lang){
   document.getElementById("langLabel").textContent=cfg.label;
   document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.getAttribute("data-i18n");if(I18N[lang][k]!==undefined)el.textContent=I18N[lang][k];});
   document.querySelectorAll(".lang-item").forEach(it=>it.classList.toggle("active",it.dataset.lang===lang));
+  coachOpts();
   renderCoaches();
+  initCoachFilters();
   applyPricingLang();
 }
 
