@@ -11,5 +11,8 @@ window.KINORA_CONFIG = {
   SUPABASE_ANON_KEY: "sb_publishable_Fj1bvcD4oDE6MCZtQV4vwA_NlJQQPqc",
   // Flip to true AFTER you deploy the "create-checkout" Edge Function + set STRIPE_SECRET_KEY.
   // Until then, "Get my plan" continues to the signup flow (no checkout).
-  STRIPE_ENABLED: false
+  STRIPE_ENABLED: false,
+  // Flip to true AFTER you deploy the "create-room" Edge Function + set DAILY_API_KEY.
+  // Until then, "Join" shows a placeholder instead of opening a live call.
+  VIDEO_ENABLED: false
 };

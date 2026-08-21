@@ -26,6 +26,23 @@ fallback so the demo works with no keys. To turn on real accounts:
 That's it — signup/login/logout become real, and the Account tab shows the signed-in
 user. The anon key is safe to expose (it only works through Row Level Security).
 
+## Turn on payments (Phase 6) & live video (Phase 8)
+Both use a Supabase Edge Function so secret keys never reach the browser.
+
+**Stripe (Phase 6):**
+1. stripe.com (Test mode) → Developers → API keys → copy the **Secret key** (`sk_test_…`)
+2. `supabase functions deploy create-checkout --no-verify-jwt`
+3. `supabase secrets set STRIPE_SECRET_KEY=sk_test_…`
+4. Set `STRIPE_ENABLED: true` in `config.js`, push
+
+**Daily video (Phase 8):**
+1. daily.co (free) → Developers → copy your **API key**
+2. `supabase functions deploy create-room --no-verify-jwt`
+3. `supabase secrets set DAILY_API_KEY=…`
+4. Set `VIDEO_ENABLED: true` in `config.js`, push
+
+(Both functions can also be deployed from the Supabase dashboard → Edge Functions, with "Verify JWT" OFF.)
+
 ## Still mocked (later phases — marked `// TODO`)
-WhatsApp OTP (Supabase phone auth) · Telegram Login Widget · Stripe payments · booking +
-live video. The paywall discount (20%) and the "5,000+ sessions" stat are placeholders.
+WhatsApp OTP (Supabase phone auth) · Telegram Login Widget. The paywall discount (20%)
+and the "5,000+ sessions" stat are placeholders.

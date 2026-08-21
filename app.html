@@ -549,6 +549,16 @@
   #pcardBtn:hover{border-color:var(--mint)}
   .sess{cursor:pointer}
   .sess:hover{border-color:var(--line)}
+  /* live video overlay */
+  .video-overlay{position:fixed;inset:0;z-index:300;background:#05070a;display:none;flex-direction:column}
+  .video-overlay.open{display:flex}
+  .video-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:1px solid var(--line-2)}
+  .video-title{font-family:var(--rounded);font-weight:800;font-size:14px;color:var(--white)}
+  .video-leave{background:#ff5a5a;color:#fff;border:none;border-radius:100px;font-family:var(--rounded);font-weight:800;font-size:13.5px;padding:9px 20px;cursor:pointer}
+  .video-leave:hover{background:#ff4444}
+  .video-stage{flex:1;position:relative;min-height:0}
+  .video-stage iframe{width:100%;height:100%;border:0;display:block}
+  .video-loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--gray);font-family:var(--rounded);font-weight:700}
 
   @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
 </style>
@@ -596,6 +606,12 @@
 
 <!-- reusable detail bottom-sheet (coach persona / session details) -->
 <div class="sheet-overlay" id="sheet"><div class="sheet"><button class="sheet-x" onclick="closeSheet()" aria-label="Close">×</button><div id="sheetBody"></div></div></div>
+
+<!-- full-screen live video call (Daily) -->
+<div class="video-overlay" id="videoOverlay">
+  <div class="video-bar"><span class="video-title" id="videoTitle">Kinora — live session</span><button class="video-leave" id="videoLeave">Leave</button></div>
+  <div class="video-stage"><div class="video-loading" id="videoLoading">Connecting…</div><iframe id="videoFrame" allow="camera; microphone; fullscreen; display-capture; autoplay" title="Kinora live session"></iframe></div>
+</div>
 
 <script>
 /* ============================================================
@@ -982,6 +998,32 @@ function openSheet(html){ sheetBody.innerHTML = html; sheetEl.classList.add("ope
 function closeSheet(){ sheetEl.classList.remove("open"); }
 sheetEl.addEventListener("click", e => { if (e.target === sheetEl) closeSheet(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+
+/* ---------- Phase 8: live video call (Daily) ---------- */
+async function joinSession(){
+  const cfg = window.KINORA_CONFIG || {};
+  if (!cfg.VIDEO_ENABLED || !cfg.SUPABASE_URL){
+    alert("// TODO: connect a video provider (Daily) — set VIDEO_ENABLED + deploy create-room.");
+    return;
+  }
+  const ov = $("#videoOverlay"), fr = $("#videoFrame"), ld = $("#videoLoading");
+  fr.src = "about:blank"; ld.style.display = "grid"; ov.classList.add("open");
+  try {
+    const res = await fetch(`${cfg.SUPABASE_URL}/functions/v1/create-room`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "Authorization":`Bearer ${cfg.SUPABASE_ANON_KEY}` },
+      body: JSON.stringify({})
+    });
+    const j = await res.json();
+    if (j.url){ fr.onload = () => { ld.style.display = "none"; }; fr.src = j.url; }
+    else { leaveSession(); alert("Couldn't start the session. " + (j.error || "")); }
+  } catch(e){ leaveSession(); alert("Couldn't start the session."); }
+}
+function leaveSession(){
+  const ov = $("#videoOverlay"), fr = $("#videoFrame");
+  fr.src = "about:blank"; ov.classList.remove("open");
+}
+$("#videoLeave").addEventListener("click", leaveSession);
 
 /* ---------- language switcher ---------- */
 const langBtn = $("#langBtn"), langMenu = $("#langMenu");
@@ -1919,7 +1961,7 @@ function dashHome(body){
   if (eb) eb.addEventListener("click", () => { kinora.tab = "book"; kinora.book.step = 0; render(); });
   // "Join" is a live-session placeholder in the shell
   body.querySelectorAll(".btn-join").forEach(b =>
-    b.addEventListener("click", e => { e.stopPropagation(); alert("// TODO: launch the live video session (e.g. Daily / Twilio / Agora room)."); }));
+    b.addEventListener("click", e => { e.stopPropagation(); joinSession(); }));
   // session card -> detail sheet
   body.querySelectorAll(".sess").forEach(el =>
     el.addEventListener("click", () => openSessionSheet(sessions[Number(el.dataset.si)])));
@@ -1947,7 +1989,7 @@ function openSessionSheet(s){
       <button class="btn btn-danger" id="shCancel">${d.cancel}</button>
     </div>`);
   // TODO: connect live video + real reschedule/cancel (backend)
-  $("#shJoin").addEventListener("click", () => alert("// TODO: launch the live video session."));
+  $("#shJoin").addEventListener("click", () => { closeSheet(); joinSession(); });
   $("#shResch").addEventListener("click", () => { closeSheet(); kinora.tab = "book"; kinora.book.step = 0; render(); });
   $("#shCancel").addEventListener("click", async () => {
     if (SB && kinora.auth && String(s.id).length > 20){ try { await SB.from("bookings").delete().eq("id", s.id); } catch(e){} }
