@@ -485,6 +485,14 @@
   .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
   .slot{padding:12px;border:1px solid var(--line-2);border-radius:12px;text-align:center;font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums;background:none;color:var(--white);transition:.2s}
   .slot.on{border-color:var(--mint);background:rgba(111,255,194,.08);color:var(--mint)}
+  /* coach portal */
+  .earn-amt{margin-inline-start:auto;font-family:var(--rounded);font-weight:900;font-size:15px;color:var(--mint);flex:0 0 auto}
+  .av-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-2)}
+  .av-row:last-child{border-bottom:none}
+  .av-day{width:44px;flex:0 0 auto;font-family:var(--rounded);font-weight:800;font-size:13px;color:var(--gray);text-transform:capitalize}
+  .av-blocks{display:flex;gap:8px;flex:1;flex-wrap:wrap}
+  .av-chip{flex:1;min-width:78px;padding:9px 10px;border-radius:11px;border:1px solid var(--line-2);background:none;color:var(--gray);font-family:var(--rounded);font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s}
+  .av-chip.on{border-color:var(--mint);background:rgba(111,255,194,.1);color:var(--mint)}
   .tz-note{display:flex;align-items:center;gap:7px;color:var(--gray);font-size:12.5px;margin-top:16px}
   .tz-note svg{color:var(--mint);flex:0 0 auto}
   .no-slots{color:var(--gray);font-size:14px;text-align:center;padding:22px 14px;border:1px dashed var(--line-2);border-radius:14px;margin-top:6px}
@@ -950,6 +958,30 @@ const DASH = {
 const LOCALES = {en:"en-US",ar:"ar-AE",zh:"zh-CN",ru:"ru-RU",ko:"ko-KR"};
 const TIME_SLOTS = ["07:00","09:00","12:00","17:00","19:00","20:00"];
 
+/* ============================================================
+   PHASE 9 — coach side (two-sided marketplace)
+   ============================================================ */
+const COMMISSION = 0.20;   // platform commission; coach keeps 80%
+const COACH = {
+  en:{nav_sessions:"Sessions",nav_earnings:"Earnings",nav_availability:"Availability",nav_profile:"Profile",verified:"Verified coach",up_title:"Upcoming sessions",with:"with",empty:"No sessions booked yet.",start:"Start",earn_month:"This month",earn_pending:"Pending payout",earn_total:"Total earned",you_keep:"You keep",platform:"Platform fee",per_session:"/ session",recent:"Recent sessions",payout:"Manage payouts",avail_title:"Your availability",avail_sub:"Tap the blocks you're free — clients book within these.",morning:"Morning",afternoon:"Afternoon",evening:"Evening",profile_title:"Your profile",specialty:"Specialty",rate:"Rate",languages:"Languages",city:"Based in",edit:"Edit profile",switch:"Switch to client view",rating:"rating",coach_greet:"Coach"},
+  ar:{nav_sessions:"الجلسات",nav_earnings:"الأرباح",nav_availability:"التوفّر",nav_profile:"الملف",verified:"مدرب موثّق",up_title:"الجلسات القادمة",with:"مع",empty:"لا جلسات محجوزة بعد.",start:"ابدأ",earn_month:"هذا الشهر",earn_pending:"دفعة معلّقة",earn_total:"إجمالي الأرباح",you_keep:"تحتفظ بـ",platform:"عمولة المنصة",per_session:"/ جلسة",recent:"الجلسات الأخيرة",payout:"إدارة المدفوعات",avail_title:"توفّرك",avail_sub:"اضغط الأوقات المتاحة لديك — يحجز العملاء ضمنها.",morning:"صباحاً",afternoon:"بعد الظهر",evening:"مساءً",profile_title:"ملفك",specialty:"التخصص",rate:"السعر",languages:"اللغات",city:"المقر",edit:"تعديل الملف",switch:"التبديل إلى وضع العميل",rating:"تقييم",coach_greet:"مدرب"},
+  zh:{nav_sessions:"课程",nav_earnings:"收入",nav_availability:"可预约",nav_profile:"资料",verified:"认证教练",up_title:"即将进行的课程",with:"学员",empty:"还没有预约课程。",start:"开始",earn_month:"本月",earn_pending:"待结算",earn_total:"累计收入",you_keep:"你的所得",platform:"平台费",per_session:"/ 节",recent:"最近课程",payout:"管理结算",avail_title:"你的可预约时间",avail_sub:"点选你有空的时段——学员在此范围内预约。",morning:"上午",afternoon:"下午",evening:"晚上",profile_title:"你的资料",specialty:"专长",rate:"价格",languages:"语言",city:"所在城市",edit:"编辑资料",switch:"切换到学员视图",rating:"评分",coach_greet:"教练"},
+  ru:{nav_sessions:"Сессии",nav_earnings:"Доход",nav_availability:"Доступность",nav_profile:"Профиль",verified:"Проверенный тренер",up_title:"Предстоящие сессии",with:"с",empty:"Пока нет записей.",start:"Начать",earn_month:"В этом месяце",earn_pending:"К выплате",earn_total:"Всего заработано",you_keep:"Вы получаете",platform:"Комиссия платформы",per_session:"/ сессия",recent:"Недавние сессии",payout:"Управление выплатами",avail_title:"Ваша доступность",avail_sub:"Отметьте свободные блоки — клиенты бронируют внутри них.",morning:"Утро",afternoon:"День",evening:"Вечер",profile_title:"Ваш профиль",specialty:"Специализация",rate:"Ставка",languages:"Языки",city:"Город",edit:"Редактировать профиль",switch:"В режим клиента",rating:"рейтинг",coach_greet:"Тренер"},
+  ko:{nav_sessions:"세션",nav_earnings:"수익",nav_availability:"가능 시간",nav_profile:"프로필",verified:"인증 코치",up_title:"예정된 세션",with:"회원:",empty:"아직 예약된 세션이 없어요.",start:"시작",earn_month:"이번 달",earn_pending:"정산 예정",earn_total:"총 수익",you_keep:"내 수익",platform:"플랫폼 수수료",per_session:"/ 세션",recent:"최근 세션",payout:"정산 관리",avail_title:"가능 시간",avail_sub:"가능한 시간대를 탭하세요 — 회원이 이 안에서 예약해요.",morning:"오전",afternoon:"오후",evening:"저녁",profile_title:"내 프로필",specialty:"전문 분야",rate:"세션당 요금",languages:"언어",city:"지역",edit:"프로필 수정",switch:"회원 화면으로 전환",rating:"평점",coach_greet:"코치"}
+};
+const COACH_ME = { spec:"build_muscle", rate:180, rating:"4.9", reviews:64, city:"Dubai", langs:["EN","AR"], grad:"linear-gradient(135deg,#6FFFC2,#0E7A5F)", initials:"K", lifetime:128 };
+const COACH_CLIENTS = [   // upcoming client sessions
+  { name:"Layla A.", init:"LA", date:isoOffset(1), time:"18:00", grad:"linear-gradient(135deg,#6FFFC2,#0E7A5F)" },
+  { name:"Omar K.",  init:"OK", date:isoOffset(2), time:"07:00", grad:"linear-gradient(135deg,#1faa7e,#6FFFC2)" },
+  { name:"Yuna P.",  init:"YP", date:isoOffset(4), time:"19:00", grad:"linear-gradient(135deg,#8affd4,#0E7A5F)" }
+];
+const COACH_DONE = [     // recent completed sessions (this month) — drives earnings
+  { name:"Sara M.", init:"SM", date:isoOffset(-1) }, { name:"Omar K.", init:"OK", date:isoOffset(-2) },
+  { name:"Layla A.", init:"LA", date:isoOffset(-3) }, { name:"Jae C.", init:"JC", date:isoOffset(-4) },
+  { name:"Nadia R.", init:"NR", date:isoOffset(-6) }, { name:"Yuna P.", init:"YP", date:isoOffset(-7) },
+  { name:"Tom H.", init:"TH", date:isoOffset(-8) }, { name:"Sara M.", init:"SM", date:isoOffset(-10) }
+];
+
 /* ---------- state (in-memory, POST-ready JSON) ---------- */
 const kinora = {
   lang: "en",
@@ -968,7 +1000,10 @@ const kinora = {
   book: { step:0, date:"", time:"", coach:"" },  // booking-flow working state
   reserved: 600,           // paywall "reserved price" countdown, seconds
   payMethod: "card",       // selected Stripe payment method: card | apple | google | link
-  currency: "AED"          // display currency (Stripe presentment)
+  currency: "AED",         // display currency (Stripe presentment)
+  // ----- Phase 9 coach side -----
+  coachTab: "sessions",    // "sessions" | "earnings" | "availability" | "profile"
+  coachAvail: null         // Set of "day:block" keys (lazy-init to a sensible default)
 };
 // expose for easy inspection in the console during the demo
 window.kinora = kinora;
@@ -1103,12 +1138,13 @@ function render(instant){
   const appEl = document.querySelector(".app");
   appEl.classList.toggle("wide", kinora.view === "paywall");
   appEl.classList.toggle("auth-wide", kinora.view === "auth");
-  appEl.classList.toggle("dash-mode", kinora.view === "dashboard");
+  appEl.classList.toggle("dash-mode", kinora.view === "dashboard" || kinora.view === "coach");
   if (kinora.view !== "paywall" && countdownTimer){ clearInterval(countdownTimer); countdownTimer = null; }
   if (kinora.view === "results"){ stage.classList.add("scroll"); renderResults(); return; }
   if (kinora.view === "paywall"){ stage.classList.add("scroll"); renderPaywall(); return; }
   if (kinora.view === "auth"){ stage.classList.add("scroll"); renderAuth(); return; }
   if (kinora.view === "dashboard"){ stage.classList.add("scroll"); renderDashboard(); return; }
+  if (kinora.view === "coach"){ stage.classList.add("scroll"); renderCoach(); return; }
   stage.classList.remove("scroll");
   renderQuizStep(instant);
 }
@@ -1282,6 +1318,7 @@ function next(){
   render();
 }
 function back(){
+  if (kinora.view === "coach"){ kinora.view = "auth"; kinora.authMode = "login"; render(); return; }
   if (kinora.view === "dashboard"){                 // within the app: step back through booking
     if (kinora.tab === "book" && kinora.book.step > 0 && kinora.book.step < 3){ kinora.book.step--; render(); }
     else if (kinora.tab !== "home"){ kinora.tab = "home"; render(); }
@@ -1706,6 +1743,7 @@ function renderAuth(){
         ? `${a.to_login} <a data-mode="login">${a.to_login_a}</a>`
         : `${a.to_signup} <a data-mode="signup">${a.to_signup_a}</a>`}</div>
       <div class="auth-terms" data-a>${a.terms}</div>
+      <div class="auth-foot" data-a style="margin-top:14px"><a id="toCoach">${({en:"I'm a coach",ar:"أنا مدرب",zh:"我是教练",ru:"Я тренер",ko:"저는 코치예요"}[kinora.lang] || "I'm a coach")} →</a></div>
     </div>`;
 
   stage.replaceChildren(wrap);
@@ -1717,6 +1755,7 @@ function renderAuth(){
   // switch between signup / login (tabs + footer link)
   wrap.querySelectorAll("[data-mode]").forEach(el =>
     el.addEventListener("click", () => { kinora.authMode = el.dataset.mode; render(); }));
+  wrap.querySelector("#toCoach").addEventListener("click", () => { kinora.view = "coach"; kinora.coachTab = "sessions"; render(); });
   wrap.querySelector("#authForm").addEventListener("submit", e => { e.preventDefault(); submitAuth(wrap, isSignup); });
   // social sign-in — in the shell these simulate a provider handoff
   wrap.querySelector("#waBtn").addEventListener("click", () => {
@@ -2123,14 +2162,123 @@ function dashAccount(body){
   });
 }
 
+/* ============================================================
+   Phase 9: coach portal (Sessions / Earnings / Availability / Profile)
+   ============================================================ */
+function renderCoach(){
+  const c = COACH[kinora.lang];
+  const navIcons = {
+    sessions:'<rect x="4" y="5" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M4 9h16M8 3v3M16 3v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    earnings:'<path d="M4 19V11M10 19V5M16 19v-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 20h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    availability:'<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    profile:'<circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c0-3.3 3.6-5 8-5s8 1.7 8 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
+  };
+  const nav = ["sessions","earnings","availability","profile"].map(t =>
+    `<button class="navtab${kinora.coachTab === t ? " on" : ""}" data-ctab="${t}"><svg viewBox="0 0 24 24" fill="none">${navIcons[t]}</svg>${c["nav_" + t]}</button>`).join("");
+  const name = (kinora.auth && kinora.auth.name) ? kinora.auth.name.split(" ")[0] : c.coach_greet;
+
+  const wrap = document.createElement("div");
+  wrap.className = "dash";
+  wrap.innerHTML = `
+    <div class="dash-top">
+      <div class="dash-hi">${DASH[kinora.lang].hi}, ${name} 👋</div>
+      <div class="dash-plan">✓ ${c.verified}</div>
+    </div>
+    <div class="dash-body" id="coachBody"></div>
+    <nav class="dash-nav">${nav}</nav>`;
+  stage.replaceChildren(wrap);
+  const body = wrap.querySelector("#coachBody");
+  ({ sessions:coachSessions, earnings:coachEarnings, availability:coachAvailability, profile:coachProfile }[kinora.coachTab] || coachSessions)(body);
+
+  if (!reduced && M) wrap.querySelectorAll("[data-a]").forEach((el, i) =>
+    M.animate(el, { opacity:[0,1], y:[16,0] }, { type:"spring", stiffness:120, damping:17, delay: 0.03 + i * 0.06 }));
+  wrap.querySelectorAll("[data-ctab]").forEach(b => b.addEventListener("click", () => { kinora.coachTab = b.dataset.ctab; render(); }));
+}
+
+function coachSessions(body){
+  const c = COACH[kinora.lang], d = DASH[kinora.lang];
+  const list = COACH_CLIENTS.map(s => `
+    <div class="sess" style="cursor:default"><div class="sav" style="background:${s.grad}">${s.init}</div>
+      <div><div class="st">${fmtDate(s.date)} · ${s.time}</div><div class="sd">${c.with} ${s.name} · ${d.sess_type}</div></div>
+      <button class="btn btn-primary btn-sm sbtn" style="padding:8px 16px;font-size:13px" data-join>${c.start}</button></div>`).join("");
+  body.innerHTML = `<div class="section-label" data-a>${c.up_title}</div><div data-a>${list || `<div class="empty">${c.empty}</div>`}</div>`;
+  body.querySelectorAll("[data-join]").forEach(b => b.addEventListener("click", joinSession));
+}
+
+function coachEarnings(body){
+  const c = COACH[kinora.lang];
+  const per = COACH_ME.rate * (1 - COMMISSION);          // coach keeps 80%
+  const month = COACH_DONE.length * per, pending = 4 * per, total = COACH_ME.lifetime * per;
+  const recent = COACH_DONE.slice(0,6).map(s => `
+    <div class="sess" style="cursor:default"><div class="sav" style="background:${COACH_ME.grad}">${s.init}</div>
+      <div><div class="st">${s.name}</div><div class="sd">${fmtDate(s.date)}</div></div>
+      <div class="earn-amt">+${fmtPrice(per)}</div></div>`).join("");
+  body.innerHTML = `
+    <div class="stats" data-a>
+      <div class="stat"><div class="sn">${fmtPrice(month)}</div><div class="sl">${c.earn_month}</div></div>
+      <div class="stat"><div class="sn">${fmtPrice(pending)}</div><div class="sl">${c.earn_pending}</div></div>
+      <div class="stat"><div class="sn">${fmtPrice(total)}</div><div class="sl">${c.earn_total}</div></div>
+    </div>
+    <div class="acct-card" data-a>
+      <div class="acct-row"><span class="al">${c.rate}</span><span class="av">${fmtPrice(COACH_ME.rate)} ${c.per_session}</span></div>
+      <div class="acct-row"><span class="al">${c.you_keep} · 80%</span><span class="av" style="color:var(--mint)">${fmtPrice(per)}</span></div>
+      <div class="acct-row"><span class="al">${c.platform} · 20%</span><span class="av">−${fmtPrice(COACH_ME.rate * COMMISSION)}</span></div>
+    </div>
+    <div class="section-label" data-a style="margin-top:22px">${c.recent}</div>
+    <div data-a>${recent}</div>
+    <div class="acct-actions" data-a><button class="btn btn-primary" id="payout">${c.payout}</button></div>`;
+  body.querySelector("#payout").addEventListener("click", () => alert("// TODO: Stripe Connect payouts (pairs with Phase 6)."));
+}
+
+function coachAvailability(body){
+  const c = COACH[kinora.lang];
+  if (!kinora.coachAvail){ kinora.coachAvail = new Set(); for (let day=0; day<5; day++){ kinora.coachAvail.add(day + ":0"); kinora.coachAvail.add(day + ":2"); } }
+  const days = [...Array(7)].map((_, i) => new Date(2024,0,1+i).toLocaleDateString(LOCALES[kinora.lang] || "en-US", { weekday:"short" }));  // Jan 1 2024 = Monday
+  const blocks = [c.morning, c.afternoon, c.evening];
+  const rows = days.map((dn, di) => `
+    <div class="av-row"><div class="av-day">${dn}</div>
+      <div class="av-blocks">${blocks.map((bn, bi) => `<button class="av-chip${kinora.coachAvail.has(di + ":" + bi) ? " on" : ""}" data-av="${di}:${bi}">${bn}</button>`).join("")}</div></div>`).join("");
+  body.innerHTML = `<div class="section-label" data-a>${c.avail_title}</div><p class="q-sub" style="text-align:start;margin:0 0 18px" data-a>${c.avail_sub}</p><div data-a>${rows}</div>`;
+  body.querySelectorAll("[data-av]").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.av; kinora.coachAvail.has(k) ? kinora.coachAvail.delete(k) : kinora.coachAvail.add(k); b.classList.toggle("on");
+  }));
+}
+
+function coachProfile(body){
+  const c = COACH[kinora.lang];
+  body.innerHTML = `
+    <div class="pcard" data-a>
+      <div class="pcard-top">
+        <div class="pcard-av" style="background:${COACH_ME.grad}">${COACH_ME.initials}</div>
+        <div><div class="pcard-name">${(kinora.auth && kinora.auth.name) || c.coach_greet}</div>
+          <span class="pcard-badge">✓ ${c.verified}</span>
+          <div style="color:var(--mint);font-weight:700;font-size:13px;margin-top:6px">★ ${COACH_ME.rating} <span style="color:var(--gray);font-weight:500">· ${COACH_ME.reviews} ${c.rating}</span></div></div>
+      </div>
+    </div>
+    <div class="acct-card" data-a style="margin-top:14px">
+      <div class="acct-row"><span class="al">${c.specialty}</span><span class="av">${L(PERSONAS[COACH_ME.spec].n)}</span></div>
+      <div class="acct-row"><span class="al">${c.rate}</span><span class="av">${fmtPrice(COACH_ME.rate)} ${c.per_session}</span></div>
+      <div class="acct-row"><span class="al">${c.languages}</span><span class="av">${COACH_ME.langs.join(" · ")}</span></div>
+      <div class="acct-row"><span class="al">${c.city}</span><span class="av">${COACH_ME.city}</span></div>
+    </div>
+    <div class="acct-actions" data-a>
+      <button class="btn btn-primary" id="cEdit">${c.edit}</button>
+      <button class="btn btn-ghost" id="cSwitch">${c.switch}</button>
+    </div>`;
+  body.querySelector("#cEdit").addEventListener("click", () => alert("// TODO: edit coach profile → write to Supabase (profiles / coaches table)."));
+  body.querySelector("#cSwitch").addEventListener("click", () => { kinora.view = "dashboard"; kinora.tab = "home"; render(); });
+}
+
 /* ---------- init ---------- */
 // returning from Stripe Checkout?  ?checkout=success | cancel
 (function(){
-  const cp = new URLSearchParams(location.search).get("checkout");
+  const params = new URLSearchParams(location.search);
+  const cp = params.get("checkout");
   if (cp){
     history.replaceState(null, "", location.pathname);       // tidy the URL
     if (cp === "success"){ kinora.view = "dashboard"; kinora.tab = "home"; }
   }
+  if (params.get("coach") !== null){ kinora.view = "coach"; kinora.coachTab = "sessions"; }  // coach portal entry
 })();
 setLang("en");
 
